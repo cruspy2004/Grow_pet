@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:;" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grow Pet Panel</title>
+    <link rel="stylesheet" href="panel.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <header class="sidebar-header">
+          <div>
+            <div class="eyebrow">Grow Pet</div>
+            <h1>Goals</h1>
+          </div>
+          <button class="primary-button" id="newGoalButton" type="button">+ New goal</button>
+        </header>
+
+        <section class="goal-list" id="goalList"></section>
+
+        <section class="settings-card">
+          <h2>Settings</h2>
+          <label>
+            <span>Auto-hide controls after seconds</span>
+            <input id="autoHideInput" type="number" min="0" step="1" />
+          </label>
+          <label class="switch-row">
+            <span>Launch at system start</span>
+            <input id="launchInput" type="checkbox" />
+          </label>
+          <button class="secondary-button" id="saveSettingsButton" type="button">Save settings</button>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <section class="hero-card" id="heroCard">
+          <div>
+            <div class="eyebrow">Active goal</div>
+            <h2 id="heroTitle">No active goal</h2>
+            <p id="heroSubtitle">Create a goal to start tracking.</p>
+          </div>
+          <div class="hero-stats" id="heroStats"></div>
+        </section>
+
+        <section class="details-grid">
+          <form class="editor-card" id="goalForm">
+            <div class="card-header">
+              <h3>Goal setup</h3>
+              <div class="card-actions">
+                <button class="secondary-button" id="activateGoalButton" type="button">Make active</button>
+                <button class="danger-button" id="deleteGoalButton" type="button">Delete</button>
+              </div>
+            </div>
+
+            <input type="hidden" id="goalIdInput" />
+            <label>
+              <span>Name</span>
+              <input id="goalNameInput" type="text" placeholder="Mercedes C200" />
+            </label>
+            <div class="two-column">
+              <label>
+                <span>Target amount</span>
+                <input id="goalTargetInput" type="number" min="0" step="1" />
+              </label>
+              <label>
+                <span>Unit value per step</span>
+                <input id="goalUnitValueInput" type="number" min="1" step="1" />
+              </label>
+            </div>
+            <div class="two-column">
+              <label>
+                <span>Start date</span>
+                <input id="goalStartInput" type="date" />
+              </label>
+              <label>
+                <span>Deadline</span>
+                <input id="goalDeadlineInput" type="date" />
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="primary-button" id="saveGoalButton" type="submit">Save goal</button>
+              <button class="secondary-button" id="resetGoalButton" type="button">Reset progress</button>
+            </div>
+          </form>
+
+          <section class="stats-card">
+            <div class="card-header">
+              <h3>Stats</h3>
+            </div>
+            <div class="stats-grid" id="statsGrid"></div>
+          </section>
+        </section>
+
+        <section class="history-card">
+          <div class="card-header">
+            <h3>History</h3>
+            <p>Every step is stored locally and can be corrected here.</p>
+          </div>
+          <div class="history-list" id="historyList"></div>
+        </section>
+      </section>
+    </main>
+    <script src="shared.js"></script>
+    <script src="panel.js"></script>
+  </body>
+</html>

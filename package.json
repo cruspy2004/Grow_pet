@@ -1,0 +1,12 @@
+{
+  "name": "grow_pet",
+  "version": "1.0.0",
+  "description": "A desktop pet for goal tracking with a compact widget and a right-click control panel.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^31.0.0"
+  }
+}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:;" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grow Pet Widget</title>
+    <link rel="stylesheet" href="widget.css" />
+  </head>
+  <body>
+    <main class="widget-shell" id="app">
+      <section class="pet-shell" id="petShell">
+        <button class="pet-button" id="petButton" aria-label="Toggle controls">
+          <span class="pet-icon" aria-hidden="true">
+            <span class="ear ear-left"></span>
+            <span class="ear ear-right"></span>
+            <span class="face">
+              <span class="eye eye-left"></span>
+              <span class="eye eye-right"></span>
+              <span class="nose"></span>
+            </span>
+          </span>
+        </button>
+
+        <section class="controls hidden" id="controls">
+          <div class="goal-strip">
+            <div class="goal-name" id="goalName">No active goal</div>
+            <div class="goal-meta" id="goalMeta">Open the panel to add a goal.</div>
+          </div>
+
+          <div class="bar-row">
+            <div class="progress-bar" id="progressBar">
+              <div class="ideal-line" id="idealLine"></div>
+              <div class="actual-marker" id="actualMarker">
+                <span class="marker-pet"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button class="step-button" id="addStepButton" type="button">+1</button>
+            <button class="caret-button" id="caretButton" type="button" aria-label="Open correction menu">▾</button>
+            <div class="dropdown hidden" id="dropdownMenu">
+              <button class="dropdown-item" id="undoStepButton" type="button">-1</button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+    <script src="shared.js"></script>
+    <script src="widget.js"></script>
+  </body>
+</html>
