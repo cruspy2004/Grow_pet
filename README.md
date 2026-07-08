@@ -4,9 +4,18 @@ Grow Pet is a local-only Electron desktop app that keeps one goal visible at all
 
 ## How To Run
 
-From the repository root:
+You must run the app from the Electron project folder, not from `d:\Grow_buddy`.
+
+```bat
+cd d:\Grow_buddy\Grow_pet
+npm install
+npm start
+```
+
+If you are already inside `d:\Grow_buddy`, first enter the app folder:
 
 ```bash
+cd Grow_pet
 npm install
 npm start
 ```
