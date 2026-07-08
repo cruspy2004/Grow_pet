@@ -26,13 +26,16 @@ npm start
 
 - Show a pet icon on the desktop at all times.
 - Left-click the pet to toggle the compact controls.
-- In compact mode, show only a progress bar, one `+1` button, one caret, and one `-1` menu item.
+- In compact mode, show only a transparent comparison strip, one chosen sprite, one `+1` button, one caret, and one `-1` menu item.
 - Click `+1` to log one unit of progress immediately.
 - Click the caret to reveal exactly one correction option: `-1`.
 - Right-click the pet or bar to open the full control panel.
 - Store everything locally with no server, no account, and no login.
 - Use `Set active` to make a goal the one shown in the widget and used by the `+1` / `-1` buttons.
-- Choose a sprite for the goal: `Me` or `Naruto`.
+- Choose a sprite family for the goal: `Me` or `Naruto`.
+- Choose one of three sprite variants for that family.
+- Choose the bar color.
+- Choose the ideal starting value.
 
 ## Architecture
 
@@ -40,7 +43,7 @@ npm start
 - `preload.js` is the safe IPC bridge. It exposes a small `growPet` API to the renderer without turning on Node integration.
 - `renderer/widget.html`, `widget.css`, and `widget.js` implement the desktop widget. This surface is intentionally tiny and only handles toggling, `+1`, `-1`, and the visual markers.
 - `renderer/panel.html`, `panel.css`, and `panel.js` implement the full panel. This is where goal CRUD, settings, stats, and history editing live.
-- The dashboard background is black and the compact widget uses sprite frames instead of the earlier face illustration.
+- The dashboard background is black and the compact widget uses a transparent layout with a lighter bar and two comparison sprites, one above the bar and one below it.
 
 ## Working Flow
 
@@ -73,3 +76,4 @@ All data is stored locally in a JSON file named `goals.json` under Electron’s 
 - The widget is meant to stay visually minimal.
 - The full panel is the only place where detailed calculations and editing live.
 - `Set active` means “this is the goal the widget uses right now.”
+- The widget shows the chosen sprite once, not all three variants at the same time.

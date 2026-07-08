@@ -87,6 +87,24 @@
                 <option value="naruto">Naruto</option>
               </select>
             </label>
+            <div class="two-column">
+              <label>
+                <span>Sprite variant</span>
+                <select id="goalSpriteVariantInput">
+                  <option value="1">Variant 1</option>
+                  <option value="2">Variant 2</option>
+                  <option value="3">Variant 3</option>
+                </select>
+              </label>
+              <label>
+                <span>Ideal starts at</span>
+                <input id="goalIdealStartInput" type="number" min="0" step="1" />
+              </label>
+            </div>
+            <label>
+              <span>Bar color</span>
+              <input id="goalBarColorInput" type="color" />
+            </label>
             <div class="form-actions">
               <button class="primary-button" id="saveGoalButton" type="submit">Save goal</button>
               <button class="secondary-button" id="resetGoalButton" type="button">Reset progress</button>

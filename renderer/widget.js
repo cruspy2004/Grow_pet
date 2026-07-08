@@ -6,20 +6,17 @@ const state = {
   controlsVisible: false,
   dropdownVisible: false,
   hideTimer: null,
-  lastActual: null,
-  frameIndex: 0,
-  frameTimer: null
+  lastActual: null
 };
 
-const petButton = document.getElementById('petButton');
 const petSprite = document.getElementById('petSprite');
 const controls = document.getElementById('controls');
 const goalName = document.getElementById('goalName');
 const goalMeta = document.getElementById('goalMeta');
 const progressBar = document.getElementById('progressBar');
 const idealLine = document.getElementById('idealLine');
-const actualMarker = document.getElementById('actualMarker');
-const markerSprite = document.getElementById('markerSprite');
+const idealSprite = document.getElementById('idealSprite');
+const actualSprite = document.getElementById('actualSprite');
 const addStepButton = document.getElementById('addStepButton');
 const caretButton = document.getElementById('caretButton');
 const dropdownMenu = document.getElementById('dropdownMenu');
@@ -60,27 +57,19 @@ function clampPosition(ratio) {
   return Math.max(0, Math.min(width, width * ratio));
 }
 
-function currentFrames() {
-  return shared.getSpriteFrames(state.snapshot?.activeGoal?.spriteKey);
-}
-
 function renderSprites() {
-  const frames = currentFrames();
-  const sprite = frames[state.frameIndex % frames.length];
+  const activeGoal = state.snapshot?.activeGoal;
+  if (!activeGoal) {
+    petSprite.src = '';
+    idealSprite.src = '';
+    actualSprite.src = '';
+    return;
+  }
+
+  const sprite = shared.getSpriteFrame(activeGoal.spriteKey, activeGoal.spriteVariant);
   petSprite.src = sprite;
-  markerSprite.src = sprite;
-}
-
-function startSpriteAnimation() {
-  clearInterval(state.frameTimer);
-  state.frameTimer = setInterval(() => {
-    if (!state.snapshot?.activeGoal) {
-      return;
-    }
-
-    state.frameIndex = (state.frameIndex + 1) % 3;
-    renderSprites();
-  }, 220);
+  idealSprite.src = sprite;
+  actualSprite.src = sprite;
 }
 
 function renderGoal() {
@@ -89,9 +78,8 @@ function renderGoal() {
     goalName.textContent = 'No active goal';
     goalMeta.textContent = 'Open the panel to create or activate a goal.';
     idealLine.style.left = '0px';
-    actualMarker.style.left = '0px';
-    petSprite.src = '';
-    markerSprite.src = '';
+    progressBar.style.setProperty('--bar-color', '#5fb8ff');
+    renderSprites();
     return;
   }
 
@@ -99,23 +87,23 @@ function renderGoal() {
   goalName.textContent = activeGoal.name;
   goalMeta.textContent = `${formatCompactCurrency(stats.actual)} actual · ${formatCompactCurrency(stats.ideal)} ideal · ${formatCompactCurrency(stats.delta)} delta`;
 
+  progressBar.style.setProperty('--bar-color', activeGoal.barColor || '#5fb8ff');
   idealLine.style.left = `${clampPosition(stats.idealRatio)}px`;
-  actualMarker.style.left = `${clampPosition(stats.actualRatio)}px`;
+  idealSprite.style.left = `${clampPosition(stats.idealRatio)}px`;
+  actualSprite.style.left = `${clampPosition(stats.actualRatio)}px`;
   renderSprites();
 
   if (state.lastActual !== stats.actual) {
-    actualMarker.classList.remove('bump');
-    void actualMarker.offsetWidth;
-    actualMarker.classList.add('bump');
+    actualSprite.classList.remove('bump');
+    void actualSprite.offsetWidth;
+    actualSprite.classList.add('bump');
     state.lastActual = stats.actual;
   }
 }
 
 function render(snapshot) {
   state.snapshot = snapshot;
-  state.frameIndex = 0;
   renderGoal();
-  startSpriteAnimation();
   if (snapshot?.settings?.autoHideSeconds > 0) {
     resetHideTimer();
   }
@@ -132,14 +120,14 @@ async function addStep(delta) {
   resetHideTimer();
 }
 
-petButton.addEventListener('click', () => {
+petSprite.addEventListener('click', () => {
   setControlsVisible(!state.controlsVisible);
   if (state.controlsVisible) {
     resetHideTimer();
   }
 });
 
-petButton.addEventListener('contextmenu', (event) => {
+petSprite.addEventListener('contextmenu', (event) => {
   event.preventDefault();
   petApi.notifyRightClick();
 });

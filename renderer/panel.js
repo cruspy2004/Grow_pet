@@ -20,6 +20,9 @@ const goalUnitValueInput = document.getElementById('goalUnitValueInput');
 const goalStartInput = document.getElementById('goalStartInput');
 const goalDeadlineInput = document.getElementById('goalDeadlineInput');
 const goalSpriteInput = document.getElementById('goalSpriteInput');
+const goalSpriteVariantInput = document.getElementById('goalSpriteVariantInput');
+const goalIdealStartInput = document.getElementById('goalIdealStartInput');
+const goalBarColorInput = document.getElementById('goalBarColorInput');
 const activateGoalButton = document.getElementById('activateGoalButton');
 const deleteGoalButton = document.getElementById('deleteGoalButton');
 const resetGoalButton = document.getElementById('resetGoalButton');
@@ -49,6 +52,10 @@ function spriteLabel(goal) {
   return shared.getSpriteLabel(goal?.spriteKey);
 }
 
+function spriteVariantLabel(goal) {
+  return `v${goal?.spriteVariant || 1}`;
+}
+
 function renderGoalList() {
   const goals = ui.snapshot?.goals || [];
   if (!goals.length) {
@@ -67,7 +74,8 @@ function renderGoalList() {
             <span>Target ${currency(goal.target)}</span>
             <span>Unit ${currency(goal.unitValue)}</span>
           </div>
-          <p class="goal-sprite">Sprite ${shared.escapeHtml(spriteLabel(goal))}</p>
+          <p class="goal-sprite">Sprite ${shared.escapeHtml(spriteLabel(goal))} ${shared.escapeHtml(spriteVariantLabel(goal))}</p>
+          <p class="goal-sprite">Bar ${shared.escapeHtml(goal.barColor || '#5fb8ff')}</p>
           <div class="item-actions">
             <button class="secondary-button select-goal" type="button">Open</button>
             <button class="secondary-button activate-goal" type="button">Set active</button>
@@ -116,6 +124,9 @@ function fillGoalForm(goal) {
   goalStartInput.value = shared.toInputDate(goal?.startDate || new Date());
   goalDeadlineInput.value = shared.toInputDate(goal?.deadline || new Date());
   goalSpriteInput.value = goal?.spriteKey || 'avatar';
+  goalSpriteVariantInput.value = String(goal?.spriteVariant || 1);
+  goalIdealStartInput.value = String(goal?.idealStartValue ?? 0);
+  goalBarColorInput.value = goal?.barColor || '#5fb8ff';
 }
 
 function renderHero(goal) {
@@ -231,6 +242,9 @@ goalForm.addEventListener('submit', async (event) => {
     startDate: new Date(goalStartInput.value || new Date()).toISOString(),
     deadline: new Date(goalDeadlineInput.value || new Date()).toISOString(),
     spriteKey: goalSpriteInput.value,
+    spriteVariant: Number(goalSpriteVariantInput.value || 1),
+    idealStartValue: Number(goalIdealStartInput.value || 0),
+    barColor: goalBarColorInput.value,
     active: true
   };
 

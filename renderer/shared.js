@@ -53,11 +53,18 @@ function getSpriteLabel(spriteKey) {
   return spriteKey === 'naruto' ? 'Naruto' : 'Me';
 }
 
+function getSpriteFrame(spriteKey, spriteVariant) {
+  const frames = getSpriteFrames(spriteKey);
+  const normalizedVariant = Math.min(frames.length, Math.max(1, Number(spriteVariant) || 1));
+  return frames[normalizedVariant - 1];
+}
+
 window.growPetShared = {
   formatCurrency,
   toInputDate,
   toInputDateTime,
   escapeHtml,
   getSpriteFrames,
-  getSpriteLabel
+  getSpriteLabel,
+  getSpriteFrame
 };

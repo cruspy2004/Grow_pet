@@ -59,7 +59,10 @@ function normalizeState(input) {
       unitValue: Number(goal?.unitValue) || 1,
       startDate: String(goal?.startDate || new Date().toISOString()),
       deadline: String(goal?.deadline || new Date().toISOString()),
-        spriteKey: goal?.spriteKey === 'naruto' ? 'naruto' : 'avatar',
+      spriteKey: goal?.spriteKey === 'naruto' ? 'naruto' : 'avatar',
+      spriteVariant: [1, 2, 3].includes(Number(goal?.spriteVariant)) ? Number(goal.spriteVariant) : 1,
+      idealStartValue: Math.max(0, Number(goal?.idealStartValue) || 0),
+      barColor: String(goal?.barColor || '#5fb8ff'),
       active: Boolean(goal?.active)
     })),
     stepEvents: stepEvents.map((event) => ({
@@ -113,7 +116,8 @@ function computeGoalMetrics(goal) {
   const deadline = toDateOnly(goal.deadline);
   const totalDays = Math.max(1, daysBetween(start, deadline));
   const elapsedDays = clamp(daysBetween(start, today), 0, totalDays);
-  const ideal = (elapsedDays / totalDays) * goal.target;
+  const idealStartValue = clamp(Number(goal.idealStartValue) || 0, 0, goal.target);
+  const ideal = idealStartValue + (elapsedDays / totalDays) * Math.max(goal.target - idealStartValue, 0);
   const remainingDays = Math.max(0, daysBetween(today, deadline));
   const remainingAmount = goal.target - actual;
   const requiredPace = remainingDays > 0 ? remainingAmount / remainingDays : remainingAmount > 0 ? remainingAmount : 0;
@@ -126,6 +130,7 @@ function computeGoalMetrics(goal) {
     requiredPace,
     actualRatio: goal.target > 0 ? clamp(actual / goal.target, 0, 1.2) : 0,
     idealRatio: goal.target > 0 ? clamp(ideal / goal.target, 0, 1.2) : 0,
+    idealStartValue,
     history: [...events].sort((left, right) => new Date(right.timestamp) - new Date(left.timestamp))
   };
 }
@@ -237,6 +242,9 @@ async function upsertGoal(goalId, payload) {
     startDate,
     deadline,
     spriteKey: payload.spriteKey === 'naruto' ? 'naruto' : 'avatar',
+    spriteVariant: [1, 2, 3].includes(Number(payload.spriteVariant)) ? Number(payload.spriteVariant) : 1,
+    idealStartValue: Math.max(0, Number(payload.idealStartValue) || 0),
+    barColor: String(payload.barColor || '#5fb8ff'),
     active: Boolean(payload.active)
   };
 

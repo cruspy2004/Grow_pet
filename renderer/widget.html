@@ -10,9 +10,7 @@
   <body>
     <main class="widget-shell" id="app">
       <section class="pet-shell" id="petShell">
-        <button class="pet-button" id="petButton" aria-label="Toggle controls">
-          <img class="sprite-image" id="petSprite" alt="" />
-        </button>
+        <img class="pet-standalone" id="petSprite" alt="" />
 
         <section class="controls hidden" id="controls">
           <div class="goal-strip">
@@ -21,12 +19,11 @@
           </div>
 
           <div class="bar-row">
+            <img class="marker-sprite marker-sprite-top" id="idealSprite" alt="" />
             <div class="progress-bar" id="progressBar">
               <div class="ideal-line" id="idealLine"></div>
-              <div class="actual-marker" id="actualMarker">
-                <img class="marker-sprite" id="markerSprite" alt="" />
-              </div>
             </div>
+            <img class="marker-sprite marker-sprite-bottom" id="actualSprite" alt="" />
           </div>
 
           <div class="action-row">
