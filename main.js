@@ -3,6 +3,11 @@ const fs = require('fs/promises');
 const path = require('path');
 const { randomUUID } = require('crypto');
 
+app.disableHardwareAcceleration();
+const userDataPath = app.getPath('userData');
+app.setPath('cache', path.join(userDataPath, 'Cache'));
+app.setPath('crashDumps', path.join(userDataPath, 'Crashpad'));
+
 const DEFAULT_STATE = {
   settings: {
     autoHideSeconds: 6,
