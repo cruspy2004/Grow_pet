@@ -59,6 +59,7 @@ function normalizeState(input) {
       unitValue: Number(goal?.unitValue) || 1,
       startDate: String(goal?.startDate || new Date().toISOString()),
       deadline: String(goal?.deadline || new Date().toISOString()),
+        spriteKey: goal?.spriteKey === 'naruto' ? 'naruto' : 'avatar',
       active: Boolean(goal?.active)
     })),
     stepEvents: stepEvents.map((event) => ({
@@ -235,6 +236,7 @@ async function upsertGoal(goalId, payload) {
     unitValue: Math.max(1, Number(payload.unitValue) || 1),
     startDate,
     deadline,
+    spriteKey: payload.spriteKey === 'naruto' ? 'naruto' : 'avatar',
     active: Boolean(payload.active)
   };
 

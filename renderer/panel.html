@@ -40,6 +40,7 @@
             <div class="eyebrow">Active goal</div>
             <h2 id="heroTitle">No active goal</h2>
             <p id="heroSubtitle">Create a goal to start tracking.</p>
+            <p class="helper-text">Make Active sets which goal drives the widget and the +1 / -1 quick actions.</p>
           </div>
           <div class="hero-stats" id="heroStats"></div>
         </section>
@@ -79,6 +80,13 @@
                 <input id="goalDeadlineInput" type="date" />
               </label>
             </div>
+            <label>
+              <span>Sprite</span>
+              <select id="goalSpriteInput">
+                <option value="avatar">Me</option>
+                <option value="naruto">Naruto</option>
+              </select>
+            </label>
             <div class="form-actions">
               <button class="primary-button" id="saveGoalButton" type="submit">Save goal</button>
               <button class="secondary-button" id="resetGoalButton" type="button">Reset progress</button>

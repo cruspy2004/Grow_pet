@@ -19,6 +19,7 @@ const goalTargetInput = document.getElementById('goalTargetInput');
 const goalUnitValueInput = document.getElementById('goalUnitValueInput');
 const goalStartInput = document.getElementById('goalStartInput');
 const goalDeadlineInput = document.getElementById('goalDeadlineInput');
+const goalSpriteInput = document.getElementById('goalSpriteInput');
 const activateGoalButton = document.getElementById('activateGoalButton');
 const deleteGoalButton = document.getElementById('deleteGoalButton');
 const resetGoalButton = document.getElementById('resetGoalButton');
@@ -44,6 +45,10 @@ function createStatCard(label, value) {
   return `<section class="stat-card"><span>${shared.escapeHtml(label)}</span><strong>${shared.escapeHtml(value)}</strong></section>`;
 }
 
+function spriteLabel(goal) {
+  return shared.getSpriteLabel(goal?.spriteKey);
+}
+
 function renderGoalList() {
   const goals = ui.snapshot?.goals || [];
   if (!goals.length) {
@@ -62,9 +67,10 @@ function renderGoalList() {
             <span>Target ${currency(goal.target)}</span>
             <span>Unit ${currency(goal.unitValue)}</span>
           </div>
+          <p class="goal-sprite">Sprite ${shared.escapeHtml(spriteLabel(goal))}</p>
           <div class="item-actions">
             <button class="secondary-button select-goal" type="button">Open</button>
-            <button class="secondary-button activate-goal" type="button">Make active</button>
+            <button class="secondary-button activate-goal" type="button">Set active</button>
           </div>
         </article>
       `;
@@ -109,6 +115,7 @@ function fillGoalForm(goal) {
   goalUnitValueInput.value = goal?.unitValue ?? 1;
   goalStartInput.value = shared.toInputDate(goal?.startDate || new Date());
   goalDeadlineInput.value = shared.toInputDate(goal?.deadline || new Date());
+  goalSpriteInput.value = goal?.spriteKey || 'avatar';
 }
 
 function renderHero(goal) {
@@ -120,7 +127,7 @@ function renderHero(goal) {
   }
 
   heroTitle.textContent = goal.name;
-  heroSubtitle.textContent = `${currency(goal.stats.delta)} delta · ${currency(goal.stats.requiredPace)} required per day`;
+  heroSubtitle.textContent = `${currency(goal.stats.delta)} delta · ${currency(goal.stats.requiredPace)} required per day · ${spriteLabel(goal)}`;
   heroStats.innerHTML = [
     createStatCard('Actual', currency(goal.stats.actual)),
     createStatCard('Ideal by today', currency(goal.stats.ideal)),
@@ -223,6 +230,7 @@ goalForm.addEventListener('submit', async (event) => {
     unitValue: Number(goalUnitValueInput.value || 1),
     startDate: new Date(goalStartInput.value || new Date()).toISOString(),
     deadline: new Date(goalDeadlineInput.value || new Date()).toISOString(),
+    spriteKey: goalSpriteInput.value,
     active: true
   };
 

@@ -31,6 +31,8 @@ npm start
 - Click the caret to reveal exactly one correction option: `-1`.
 - Right-click the pet or bar to open the full control panel.
 - Store everything locally with no server, no account, and no login.
+- Use `Set active` to make a goal the one shown in the widget and used by the `+1` / `-1` buttons.
+- Choose a sprite for the goal: `Me` or `Naruto`.
 
 ## Architecture
 
@@ -38,6 +40,7 @@ npm start
 - `preload.js` is the safe IPC bridge. It exposes a small `growPet` API to the renderer without turning on Node integration.
 - `renderer/widget.html`, `widget.css`, and `widget.js` implement the desktop widget. This surface is intentionally tiny and only handles toggling, `+1`, `-1`, and the visual markers.
 - `renderer/panel.html`, `panel.css`, and `panel.js` implement the full panel. This is where goal CRUD, settings, stats, and history editing live.
+- The dashboard background is black and the compact widget uses sprite frames instead of the earlier face illustration.
 
 ## Working Flow
 
@@ -69,3 +72,4 @@ All data is stored locally in a JSON file named `goals.json` under Electron’s 
 - The ideal pace line is linear.
 - The widget is meant to stay visually minimal.
 - The full panel is the only place where detailed calculations and editing live.
+- `Set active` means “this is the goal the widget uses right now.”

@@ -32,9 +32,32 @@ function escapeHtml(value) {
     .replaceAll("'", '&#39;');
 }
 
+const SPRITE_SETS = {
+  avatar: [
+    '../assets/me-1.png',
+    '../assets/me-2.png',
+    '../assets/me-3.png'
+  ],
+  naruto: [
+    '../assets/naruto-1.png',
+    '../assets/naruto-2.png',
+    '../assets/naruto-3.png'
+  ]
+};
+
+function getSpriteFrames(spriteKey) {
+  return SPRITE_SETS[spriteKey] || SPRITE_SETS.avatar;
+}
+
+function getSpriteLabel(spriteKey) {
+  return spriteKey === 'naruto' ? 'Naruto' : 'Me';
+}
+
 window.growPetShared = {
   formatCurrency,
   toInputDate,
   toInputDateTime,
-  escapeHtml
+  escapeHtml,
+  getSpriteFrames,
+  getSpriteLabel
 };
