@@ -66,7 +66,9 @@ function renderSprites() {
     return;
   }
 
-  const sprite = shared.getSpriteFrame(activeGoal.spriteKey, activeGoal.spriteVariant);
+  const sourceList = state.snapshot?.spriteSources?.[activeGoal.spriteKey] || [];
+  const normalizedVariant = Math.min(sourceList.length, Math.max(1, Number(activeGoal.spriteVariant) || 1));
+  const sprite = sourceList[normalizedVariant - 1] || shared.getSpriteFrame(activeGoal.spriteKey, activeGoal.spriteVariant);
   petSprite.src = sprite;
   idealSprite.src = sprite;
   actualSprite.src = sprite;

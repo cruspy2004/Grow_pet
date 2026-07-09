@@ -19,10 +19,18 @@ const DEFAULT_STATE = {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const dataFilePath = () => path.join(app.getPath('userData'), 'goals.json');
+const spriteAssetMap = {
+  avatar: ['me-1.png', 'me-2.png', 'me-3.png'],
+  naruto: ['naruto-1.png', 'naruto-2.png', 'naruto-3.png']
+};
 
 let state = structuredClone(DEFAULT_STATE);
 let widgetWindow = null;
 let panelWindow = null;
+let spriteSources = {
+  avatar: [],
+  naruto: []
+};
 
 function toDateOnly(value) {
   const date = new Date(value);
@@ -89,6 +97,22 @@ async function loadState() {
   }
 
   ensureActiveGoal();
+}
+
+async function loadSpriteSources() {
+  const assetDir = path.join(__dirname, 'assets');
+  const loaded = {};
+
+  for (const [spriteKey, fileNames] of Object.entries(spriteAssetMap)) {
+    loaded[spriteKey] = [];
+    for (const fileName of fileNames) {
+      const filePath = path.join(assetDir, fileName);
+      const buffer = await fs.readFile(filePath);
+      loaded[spriteKey].push(`data:image/png;base64,${buffer.toString('base64')}`);
+    }
+  }
+
+  spriteSources = loaded;
 }
 
 async function saveState() {
@@ -158,6 +182,7 @@ function getSnapshot() {
     goals,
     activeGoalId,
     activeGoal,
+    spriteSources,
     theme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light'
   };
 }
@@ -372,6 +397,7 @@ async function updateSettings(partial) {
 
 app.whenReady().then(async () => {
   await loadState();
+  await loadSpriteSources();
   createWidgetWindow();
   sendSnapshot();
 
