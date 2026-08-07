@@ -59,7 +59,7 @@ function getSpriteFrame(spriteKey, spriteVariant) {
   return new URL(frames[normalizedVariant - 1], window.location.href).href;
 }
 
-window.growPetShared = {
+window.growBuddyShared = {
   formatCurrency,
   toInputDate,
   toInputDateTime,

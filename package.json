@@ -1,12 +1,82 @@
 {
-  "name": "grow_pet",
+  "name": "grow-buddy",
+  "productName": "Grow Buddy",
   "version": "1.0.0",
-  "description": "A desktop pet for goal tracking with a compact widget and a right-click control panel.",
+  "description": "A desktop pet that walks only as fast as you do toward your goal.",
   "main": "main.js",
+  "author": {
+    "name": "Muhammad Haadhee Sheeraz Mian",
+    "email": "haadheesheeraz2004@gmail.com"
+  },
+  "license": "MIT",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "test": "node --test tests",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
   },
   "dependencies": {
-    "electron": "^31.0.0"
+    "electron": "^31.0.0",
+    "electron-updater": "^6.2.1"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.growbuddy.app",
+    "productName": "Grow Buddy",
+    "artifactName": "GrowBuddy-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "renderer/**/*",
+      "assets/**/*",
+      "!**/*.map"
+    ],
+    "extraMetadata": {
+      "main": "main.js"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "releaseType": "release"
+      }
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "GrowBuddy-Setup-${version}.${ext}"
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] }
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    }
   }
 }

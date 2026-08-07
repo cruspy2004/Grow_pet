@@ -2,9 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:;" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; font-src 'self';" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Grow Pet Panel</title>
+    <title>Grow Buddy</title>
     <link rel="stylesheet" href="panel.css" />
   </head>
   <body>
@@ -12,119 +12,215 @@
       <aside class="sidebar">
         <header class="sidebar-header">
           <div>
-            <div class="eyebrow">Grow Pet</div>
+            <div class="eyebrow">Grow Buddy</div>
             <h1>Goals</h1>
           </div>
           <button class="primary-button" id="newGoalButton" type="button">+ New goal</button>
         </header>
 
-        <section class="goal-list" id="goalList"></section>
+        <nav class="tab-nav" id="tabNav">
+          <button class="tab-button active" data-tab="goals" type="button">Goals</button>
+          <button class="tab-button" data-tab="pro" type="button">Pro (Buddies)</button>
+          <button class="tab-button" data-tab="settings" type="button">Settings</button>
+        </nav>
 
-        <section class="settings-card">
-          <h2>Settings</h2>
-          <label>
-            <span>Auto-hide controls after seconds</span>
-            <input id="autoHideInput" type="number" min="0" step="1" />
-          </label>
-          <label class="switch-row">
-            <span>Launch at system start</span>
-            <input id="launchInput" type="checkbox" />
-          </label>
-          <button class="secondary-button" id="saveSettingsButton" type="button">Save settings</button>
-        </section>
+        <section class="goal-list" id="goalList"></section>
       </aside>
 
       <section class="workspace">
-        <section class="hero-card" id="heroCard">
-          <div>
-            <div class="eyebrow">Active goal</div>
-            <h2 id="heroTitle">No active goal</h2>
-            <p id="heroSubtitle">Create a goal to start tracking.</p>
-            <p class="helper-text">Make Active sets which goal drives the widget and the +1 / -1 quick actions.</p>
-          </div>
-          <div class="hero-stats" id="heroStats"></div>
-        </section>
+        <section class="tab-panel active" data-tab-panel="goals">
+          <section class="hero-card" id="heroCard">
+            <div>
+              <div class="eyebrow">Active goal</div>
+              <h2 id="heroTitle">No active goal</h2>
+              <p id="heroSubtitle">Create a goal to start tracking.</p>
+              <p class="helper-text">Make Active sets which goal drives the widget and the +1 / -1 quick actions.</p>
+            </div>
+            <div class="hero-stats" id="heroStats"></div>
+          </section>
 
-        <section class="details-grid">
-          <form class="editor-card" id="goalForm">
-            <div class="card-header">
-              <h3>Goal setup</h3>
-              <div class="card-actions">
-                <button class="secondary-button" id="activateGoalButton" type="button">Make active</button>
-                <button class="danger-button" id="deleteGoalButton" type="button">Delete</button>
+          <section class="completion-banner hidden" id="completionBanner">
+            <div>
+              <strong>Goal reached.</strong>
+              <span id="completionText">You hit your target.</span>
+            </div>
+            <div class="banner-actions">
+              <button class="secondary-button" id="archiveGoalButton" type="button">Archive</button>
+              <button class="primary-button" id="extendGoalButton" type="button">Extend deadline</button>
+            </div>
+          </section>
+
+          <section class="details-grid">
+            <form class="editor-card" id="goalForm">
+              <div class="card-header">
+                <h3>Goal setup</h3>
+                <div class="card-actions">
+                  <button class="secondary-button" id="activateGoalButton" type="button">Make active</button>
+                  <button class="danger-button" id="deleteGoalButton" type="button">Delete</button>
+                </div>
               </div>
-            </div>
 
-            <input type="hidden" id="goalIdInput" />
-            <label>
-              <span>Name</span>
-              <input id="goalNameInput" type="text" placeholder="Mercedes C200" />
-            </label>
-            <div class="two-column">
+              <input type="hidden" id="goalIdInput" />
               <label>
-                <span>Target amount</span>
-                <input id="goalTargetInput" type="number" min="0" step="1" />
+                <span>Name</span>
+                <input id="goalNameInput" type="text" placeholder="Mercedes C200" />
               </label>
+              <div class="two-column">
+                <label>
+                  <span>Target amount</span>
+                  <input id="goalTargetInput" type="number" min="0" step="1" />
+                </label>
+                <label>
+                  <span>Unit value per step</span>
+                  <input id="goalUnitValueInput" type="number" min="1" step="1" />
+                </label>
+              </div>
+              <div class="two-column">
+                <label>
+                  <span>Start date</span>
+                  <input id="goalStartInput" type="date" />
+                </label>
+                <label>
+                  <span>Deadline</span>
+                  <input id="goalDeadlineInput" type="date" />
+                </label>
+              </div>
               <label>
-                <span>Unit value per step</span>
-                <input id="goalUnitValueInput" type="number" min="1" step="1" />
-              </label>
-            </div>
-            <div class="two-column">
-              <label>
-                <span>Start date</span>
-                <input id="goalStartInput" type="date" />
-              </label>
-              <label>
-                <span>Deadline</span>
-                <input id="goalDeadlineInput" type="date" />
-              </label>
-            </div>
-            <label>
-              <span>Sprite</span>
-              <select id="goalSpriteInput">
-                <option value="avatar">Me</option>
-                <option value="naruto">Naruto</option>
-              </select>
-            </label>
-            <div class="two-column">
-              <label>
-                <span>Sprite variant</span>
-                <select id="goalSpriteVariantInput">
-                  <option value="1">Variant 1</option>
-                  <option value="2">Variant 2</option>
-                  <option value="3">Variant 3</option>
+                <span>Sprite</span>
+                <select id="goalSpriteInput">
+                  <option value="avatar">Me</option>
+                  <option value="naruto">Naruto</option>
                 </select>
               </label>
+              <div class="two-column">
+                <label>
+                  <span>Sprite variant</span>
+                  <select id="goalSpriteVariantInput">
+                    <option value="1">Variant 1</option>
+                    <option value="2">Variant 2</option>
+                    <option value="3">Variant 3</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Ideal starts at</span>
+                  <input id="goalIdealStartInput" type="number" min="0" step="1" />
+                </label>
+              </div>
               <label>
-                <span>Ideal starts at</span>
-                <input id="goalIdealStartInput" type="number" min="0" step="1" />
+                <span>Bar color</span>
+                <input id="goalBarColorInput" type="color" />
               </label>
-            </div>
-            <label>
-              <span>Bar color</span>
-              <input id="goalBarColorInput" type="color" />
-            </label>
-            <div class="form-actions">
-              <button class="primary-button" id="saveGoalButton" type="submit">Save goal</button>
-              <button class="secondary-button" id="resetGoalButton" type="button">Reset progress</button>
-            </div>
-          </form>
+              <div class="form-actions">
+                <button class="primary-button" id="saveGoalButton" type="submit">Save goal</button>
+                <button class="secondary-button" id="resetGoalButton" type="button">Reset progress</button>
+              </div>
+            </form>
 
-          <section class="stats-card">
+            <section class="stats-card">
+              <div class="card-header">
+                <h3>Stats</h3>
+              </div>
+              <div class="stats-grid" id="statsGrid"></div>
+            </section>
+          </section>
+
+          <section class="history-card">
             <div class="card-header">
-              <h3>Stats</h3>
+              <h3>History</h3>
+              <p>Every step is stored locally and can be corrected here.</p>
             </div>
-            <div class="stats-grid" id="statsGrid"></div>
+            <div class="history-list" id="historyList"></div>
           </section>
         </section>
 
-        <section class="history-card">
-          <div class="card-header">
-            <h3>History</h3>
-            <p>Every step is stored locally and can be corrected here.</p>
-          </div>
-          <div class="history-list" id="historyList"></div>
+        <section class="tab-panel" data-tab-panel="pro">
+          <section class="hero-card pro-hero">
+            <div>
+              <div class="eyebrow">Grow Buddy Pro</div>
+              <h2>See other people's progress on the same bar</h2>
+              <p class="helper-text">Send a share code to a friend and watch their marker slide up next to yours. Free tier stays 100% local — Pro adds an opt-in cloud sync.</p>
+            </div>
+          </section>
+
+          <section class="details-grid">
+            <section class="editor-card">
+              <div class="card-header"><h3>Account</h3></div>
+              <label>
+                <span>Your email</span>
+                <input id="proEmailInput" type="email" placeholder="you@example.com" />
+              </label>
+              <label>
+                <span>API base URL</span>
+                <input id="proApiInput" type="text" placeholder="https://api.growbuddy.app" />
+              </label>
+              <label>
+                <span>Access token</span>
+                <input id="proTokenInput" type="password" placeholder="Paste your Pro access token" />
+              </label>
+              <label class="switch-row">
+                <span>Sync enabled</span>
+                <input id="proEnabledInput" type="checkbox" />
+              </label>
+              <div class="form-actions">
+                <button class="primary-button" id="saveProButton" type="button">Save Pro settings</button>
+                <button class="secondary-button" id="syncNowButton" type="button">Sync now</button>
+              </div>
+            </section>
+
+            <section class="stats-card">
+              <div class="card-header"><h3>Your buddies</h3></div>
+              <div class="buddy-list" id="buddyList"></div>
+              <div class="form-actions">
+                <input id="joinCodeInput" type="text" placeholder="Enter a friend's code" />
+                <button class="primary-button" id="joinCodeButton" type="button">Join</button>
+              </div>
+              <div class="form-actions">
+                <select id="shareGoalSelect"></select>
+                <button class="secondary-button" id="createShareButton" type="button">Create share code</button>
+              </div>
+            </section>
+          </section>
+        </section>
+
+        <section class="tab-panel" data-tab-panel="settings">
+          <section class="editor-card">
+            <div class="card-header"><h3>Widget behavior</h3></div>
+            <label>
+              <span>Auto-hide controls after seconds (0 = never)</span>
+              <input id="autoHideInput" type="number" min="0" step="1" />
+            </label>
+            <label class="switch-row">
+              <span>Launch at system start</span>
+              <input id="launchInput" type="checkbox" />
+            </label>
+            <label class="switch-row">
+              <span>Notify me when I'm behind pace</span>
+              <input id="notifyInput" type="checkbox" />
+            </label>
+            <label>
+              <span>+1 global hotkey</span>
+              <input id="hotkeyInput" type="text" placeholder="CommandOrControl+Alt+=" />
+            </label>
+            <div class="form-actions">
+              <button class="primary-button" id="saveSettingsButton" type="button">Save settings</button>
+            </div>
+          </section>
+
+          <section class="editor-card">
+            <div class="card-header"><h3>Data</h3></div>
+            <p class="helper-text">Grow Buddy stores everything in a JSON file on your computer. Export a copy, or import from a previous backup.</p>
+            <div class="form-actions">
+              <button class="secondary-button" id="exportButton" type="button">Export data</button>
+              <button class="secondary-button" id="importButton" type="button">Import data</button>
+            </div>
+            <p class="helper-text" id="dataStatus"></p>
+          </section>
+
+          <section class="editor-card">
+            <div class="card-header"><h3>About</h3></div>
+            <p class="helper-text">Grow Buddy <span id="appVersionLabel"></span> · Local schema v<span id="schemaVersionLabel"></span></p>
+            <p class="helper-text">The pet that walks only as fast as you do.</p>
+          </section>
         </section>
       </section>
     </main>

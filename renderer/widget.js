@@ -1,19 +1,22 @@
-const shared = window.growPetShared;
-const petApi = window.growPet;
+const shared = window.growBuddyShared;
+const buddyApi = window.growBuddy;
 
 const state = {
   snapshot: null,
-  controlsVisible: false,
   dropdownVisible: false,
   hideTimer: null,
-  lastActual: null
+  lastActual: null,
+  controlsCollapsed: false
 };
 
+const petShell = document.getElementById('petShell');
+const petButton = document.getElementById('petButton');
 const petSprite = document.getElementById('petSprite');
 const controls = document.getElementById('controls');
 const goalName = document.getElementById('goalName');
 const goalMeta = document.getElementById('goalMeta');
 const progressBar = document.getElementById('progressBar');
+const progressFill = document.getElementById('progressFill');
 const idealLine = document.getElementById('idealLine');
 const idealSprite = document.getElementById('idealSprite');
 const actualSprite = document.getElementById('actualSprite');
@@ -21,18 +24,10 @@ const addStepButton = document.getElementById('addStepButton');
 const caretButton = document.getElementById('caretButton');
 const dropdownMenu = document.getElementById('dropdownMenu');
 const undoStepButton = document.getElementById('undoStepButton');
+const celebrateBadge = document.getElementById('celebrateBadge');
 
-function formatCompactCurrency(value) {
+function fmt(value) {
   return shared.formatCurrency(value);
-}
-
-function setControlsVisible(visible) {
-  state.controlsVisible = visible;
-  controls.classList.toggle('hidden', !visible);
-  if (!visible) {
-    state.dropdownVisible = false;
-    dropdownMenu.classList.add('hidden');
-  }
 }
 
 function setDropdownVisible(visible) {
@@ -40,16 +35,20 @@ function setDropdownVisible(visible) {
   dropdownMenu.classList.toggle('hidden', !visible);
 }
 
+function collapseControls(collapsed) {
+  state.controlsCollapsed = collapsed;
+  petShell.classList.toggle('controls-collapsed', collapsed);
+}
+
 function resetHideTimer() {
   clearTimeout(state.hideTimer);
   const timeout = Number(state.snapshot?.settings?.autoHideSeconds || 0);
-  if (!state.controlsVisible || timeout <= 0) {
+  if (timeout <= 0) {
+    collapseControls(false);
     return;
   }
-
-  state.hideTimer = setTimeout(() => {
-    setControlsVisible(false);
-  }, timeout * 1000);
+  collapseControls(false);
+  state.hideTimer = setTimeout(() => collapseControls(true), timeout * 1000);
 }
 
 function clampPosition(ratio) {
@@ -65,7 +64,6 @@ function renderSprites() {
     actualSprite.src = '';
     return;
   }
-
   const sourceList = state.snapshot?.spriteSources?.[activeGoal.spriteKey] || [];
   const normalizedVariant = Math.min(sourceList.length, Math.max(1, Number(activeGoal.spriteVariant) || 1));
   const sprite = sourceList[normalizedVariant - 1] || shared.getSpriteFrame(activeGoal.spriteKey, activeGoal.spriteVariant);
@@ -77,23 +75,36 @@ function renderSprites() {
 function renderGoal() {
   const activeGoal = state.snapshot?.activeGoal;
   if (!activeGoal) {
+    petShell.dataset.state = 'empty';
     goalName.textContent = 'No active goal';
-    goalMeta.textContent = 'Open the panel to create or activate a goal.';
+    goalMeta.textContent = 'Right-click to open the panel.';
+    progressFill.style.width = '0%';
     idealLine.style.left = '0px';
-    progressBar.style.setProperty('--bar-color', '#5fb8ff');
+    petShell.classList.remove('behind');
+    celebrateBadge.classList.add('hidden');
+    petButton.classList.remove('celebrating');
     renderSprites();
     return;
   }
 
+  petShell.dataset.state = 'active';
   const stats = activeGoal.stats;
   goalName.textContent = activeGoal.name;
-  goalMeta.textContent = `${formatCompactCurrency(stats.actual)} actual · ${formatCompactCurrency(stats.ideal)} ideal · ${formatCompactCurrency(stats.delta)} delta`;
+  const deltaWord = stats.delta >= 0 ? 'ahead' : 'behind';
+  goalMeta.textContent = `${fmt(stats.actual)} of ${fmt(activeGoal.target)} · ${fmt(Math.abs(stats.delta))} ${deltaWord}`;
 
-  progressBar.style.setProperty('--bar-color', activeGoal.barColor || '#5fb8ff');
-  idealLine.style.left = `${clampPosition(stats.idealRatio)}px`;
-  idealSprite.style.left = `${clampPosition(stats.idealRatio)}px`;
-  actualSprite.style.left = `${clampPosition(stats.actualRatio)}px`;
+  petShell.style.setProperty('--bar-color', activeGoal.barColor || '#5fb8ff');
+  const actualLeft = clampPosition(stats.actualRatio);
+  const idealLeft = clampPosition(stats.idealRatio);
+  progressFill.style.width = `${Math.min(100, stats.actualRatio * 100)}%`;
+  idealLine.style.left = `${idealLeft}px`;
+  idealSprite.style.left = `${idealLeft}px`;
+  actualSprite.style.left = `${actualLeft}px`;
   renderSprites();
+
+  petShell.classList.toggle('behind', stats.isBehind && !stats.isComplete);
+  celebrateBadge.classList.toggle('hidden', !stats.isComplete);
+  petButton.classList.toggle('celebrating', stats.isComplete);
 
   if (state.lastActual !== stats.actual) {
     actualSprite.classList.remove('bump');
@@ -106,37 +117,29 @@ function renderGoal() {
 function render(snapshot) {
   state.snapshot = snapshot;
   renderGoal();
-  if (snapshot?.settings?.autoHideSeconds > 0) {
-    resetHideTimer();
-  }
+  resetHideTimer();
 }
 
 async function addStep(delta) {
   const goalId = state.snapshot?.activeGoalId;
   if (!goalId) {
-    await petApi.openPanel();
+    await buddyApi.openPanel();
     return;
   }
-
-  await petApi.addStep({ goalId, delta });
+  await buddyApi.addStep({ goalId, delta });
   resetHideTimer();
 }
 
-petSprite.addEventListener('click', () => {
-  setControlsVisible(!state.controlsVisible);
-  if (state.controlsVisible) {
-    resetHideTimer();
-  }
+petButton.addEventListener('click', () => addStep(1));
+
+petButton.addEventListener('contextmenu', (event) => {
+  event.preventDefault();
+  buddyApi.notifyRightClick();
 });
 
-petSprite.addEventListener('contextmenu', (event) => {
+petShell.addEventListener('contextmenu', (event) => {
   event.preventDefault();
-  petApi.notifyRightClick();
-});
-
-controls.addEventListener('contextmenu', (event) => {
-  event.preventDefault();
-  petApi.notifyRightClick();
+  buddyApi.notifyRightClick();
 });
 
 addStepButton.addEventListener('click', () => addStep(1));
@@ -160,12 +163,18 @@ document.addEventListener('click', (event) => {
   }
 });
 
+document.addEventListener('mousemove', () => {
+  if (state.controlsCollapsed) {
+    collapseControls(false);
+  }
+  resetHideTimer();
+});
+
 window.addEventListener('resize', () => {
   if (state.snapshot) {
     renderGoal();
   }
 });
 
-petApi.onStateChange(render);
-
-petApi.getState().then(render);
+buddyApi.onStateChange(render);
+buddyApi.getState().then(render);
