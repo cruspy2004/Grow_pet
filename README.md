@@ -1,79 +1,113 @@
-# Grow Pet One-Pager
+# Grow Buddy
 
-Grow Pet is a local-only Electron desktop app that keeps one goal visible at all times. The app has two surfaces: a compact floating widget for instant progress logging, and a full panel for goal setup, stats, history, and settings.
+**The pet that walks only as fast as you do toward your goal.**
 
-## How To Run
+Grow Buddy is a tiny desktop pet that sits on your screen at all times
+and shows — at a glance — whether you're ahead or behind on any
+date-bound goal. Money saved, kilos lost, pages written, hours studied.
+One click logs +1. No dashboard. No typing. Your data stays on your
+machine.
 
-You must run the app from the Electron project folder, not from `d:\Grow_buddy`.
+- **Free tier:** local-only, no account, no telemetry, no server.
+- **Pro tier (opt-in, coming soon):** see friends' progress on the same
+  bar via share codes.
 
-```bat
-cd d:\Grow_buddy\Grow_pet
-npm install
-npm start
-```
+---
 
-If you are already inside `d:\Grow_buddy`, first enter the app folder:
+## Install
+
+Download the latest release for your OS from the
+[releases page](https://github.com/haadheesheeraz/grow_buddy/releases/latest).
+
+- **Windows:** `GrowBuddy-Setup-x.y.z.exe`. Windows 10 and 11. Until a
+  code-signing cert is in place, SmartScreen may warn — click
+  *More info → Run anyway*.
+- **macOS:** `GrowBuddy-x.y.z-mac-arm64.dmg` (and x64). macOS 11+.
+  Coming in the next release.
+- **Linux:** `GrowBuddy-x.y.z-linux-x86_64.AppImage`. Run
+  `chmod +x` and double-click.
+
+## What you get
+
+- A transparent, always-on-top pet that lives in the corner of your screen.
+- A slim bar showing your **actual** position and a fixed **ideal-pace**
+  line. Ahead = pet past the line. Behind = pet behind the line.
+- **Click the pet** = log +1 step. **Caret dropdown** = -1.
+- **Right-click** anywhere on the pet or bar to open the full panel.
+- Multiple goals, sprite variants, per-goal bar color, custom start
+  offset for the ideal line.
+- Optional behind-pace desktop notifications and a configurable global
+  hotkey (default `Ctrl+Alt+=`) that logs +1 from anywhere.
+- Export/import your `goals.json` any time.
+
+## Data
+
+Everything is stored in a single JSON file in your OS user-data
+directory:
+
+- Windows: `%APPDATA%\Grow Buddy\goals.json`
+- macOS: `~/Library/Application Support/Grow Buddy/goals.json`
+- Linux: `~/.config/Grow Buddy/goals.json`
+
+Logs (rotated at 1 MB) sit next to it under `logs/app.log`. No data
+leaves your machine on the free tier.
+
+## Development
 
 ```bash
-cd Grow_pet
+git clone https://github.com/haadheesheeraz/grow_buddy
+cd grow_buddy
 npm install
-npm start
+npm start                      # launch the app
+npm test                       # run compute + state tests
+npm run pack                   # unpacked electron-builder build (dist/)
+npm run dist:win               # signed installer, see build/README.md
 ```
 
-`npm start` launches Electron. The widget appears as a transparent always-on-top window, and the full panel opens when you right-click the pet or the bar.
+### Repository layout
 
-## What It Should Do
+```
+grow_buddy/
+  main.js               Electron main process
+  preload.js            IPC bridge (window.growBuddy)
+  src/
+    compute.js          Pure goal-metric math (unit-tested)
+    state.js            Schema versioning + normalization (unit-tested)
+    logger.js           Local rotating file logger
+    proClient.js        Pro-tier snapshot push/pull
+  renderer/
+    widget.{html,css,js}   Transparent always-on-top widget
+    panel.{html,css,js}    Full-panel goal CRUD, history, Pro, settings
+    shared.js              Utilities shared by both renderers
+  tests/
+    compute.test.js     Node test runner: 13 metric tests
+    state.test.js       Node test runner: 5 normalization tests
+  server/               Cloudflare Workers + D1 backend for Pro tier
+  web/                  Static landing page
+  build/                electron-builder icons + entitlements
+  assets/               Pet sprites (me-1..3, naruto-1..3)
+  prd.txt               Product requirements
+  design-doc.txt        Design document
+```
 
-- Show a pet icon on the desktop at all times.
-- Left-click the pet to toggle the compact controls.
-- In compact mode, show only a transparent comparison strip, one chosen sprite, one `+1` button, one caret, and one `-1` menu item.
-- Click `+1` to log one unit of progress immediately.
-- Click the caret to reveal exactly one correction option: `-1`.
-- Right-click the pet or bar to open the full control panel.
-- Store everything locally with no server, no account, and no login.
-- Use `Set active` to make a goal the one shown in the widget and used by the `+1` / `-1` buttons.
-- Choose a sprite family for the goal: `Me` or `Naruto`.
-- Choose one of three sprite variants for that family.
-- Choose the bar color.
-- Choose the ideal starting value.
+### Contributing
 
-## Architecture
+Small, focused changes preferred. Before opening a PR:
 
-- `main.js` is the Electron main process. It creates the widget window and the panel window, computes goal metrics, and saves state to the local JSON file.
-- `preload.js` is the safe IPC bridge. It exposes a small `growPet` API to the renderer without turning on Node integration.
-- `renderer/widget.html`, `widget.css`, and `widget.js` implement the desktop widget. This surface is intentionally tiny and only handles toggling, `+1`, `-1`, and the visual markers.
-- `renderer/panel.html`, `panel.css`, and `panel.js` implement the full panel. This is where goal CRUD, settings, stats, and history editing live.
-- The dashboard background is black and the compact widget uses a transparent layout with a lighter bar and two comparison sprites, one above the bar and one below it.
+- `npm test` passes.
+- `npm start` launches without errors.
+- Any behavior change is reflected in the README.
 
-## Working Flow
+## License
 
-1. The app loads local state from `goals.json` in Electron’s user data folder.
-2. The active goal is selected and its metrics are computed in `main.js`.
-3. The widget receives a snapshot through IPC and renders the actual and ideal positions on the bar.
-4. A `+1` or `-1` action appends a step event, saves the file, and broadcasts the new snapshot back to both windows.
-5. The panel can create goals, switch the active goal, edit history entries, delete entries, adjust startup settings, and update the auto-hide timeout.
+MIT — see [LICENSE](./LICENSE).
 
-## Data Model
+## Privacy
 
-- `Goal`: id, name, target, unitValue, startDate, deadline, active
-- `StepEvent`: id, goalId, delta, timestamp
-- `Settings`: autoHideSeconds, launchAtStartup
+See [PRIVACY.md](./PRIVACY.md). Short version: free tier is 100% local.
+Pro tier only sends the specific fields you share, and only to the
+people you gave a code to.
 
-## Storage
+---
 
-All data is stored locally in a JSON file named `goals.json` under Electron’s app data directory. There is no backend and no cloud sync in v1.
-
-## Repository Layout
-
-- `main.js` - app process, state, calculations, persistence
-- `preload.js` - IPC surface exposed to the UI
-- `renderer/` - widget and panel HTML/CSS/JS
-- `README.md` - this one-pager
-
-## Notes
-
-- The ideal pace line is linear.
-- The widget is meant to stay visually minimal.
-- The full panel is the only place where detailed calculations and editing live.
-- `Set active` means “this is the goal the widget uses right now.”
-- The widget shows the chosen sprite once, not all three variants at the same time.
+Built by [Muhammad Haadhee Sheeraz Mian](https://github.com/haadheesheeraz).
