@@ -1,0 +1,22 @@
+{
+  "name": "grow-buddy-server",
+  "version": "0.1.0",
+  "description": "Grow Buddy Pro backend: magic-link auth, share codes, snapshot sync (Cloudflare Workers + D1).",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:local:init": "wrangler d1 execute grow-buddy --local --file=./migrations/0001_init.sql",
+    "db:remote:init": "wrangler d1 execute grow-buddy --remote --file=./migrations/0001_init.sql",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^3.90.0"
+  }
+}

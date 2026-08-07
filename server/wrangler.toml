@@ -1,0 +1,19 @@
+name = "grow-buddy"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Fill this in after `wrangler d1 create grow-buddy`.
+[[d1_databases]]
+binding = "DB"
+database_name = "grow-buddy"
+database_id = "REPLACE_WITH_D1_ID_FROM_WRANGLER_CREATE"
+
+# Secret required in production:
+#   wrangler secret put MAGIC_LINK_SIGNING_KEY
+# Optional (if you wire up a real email provider):
+#   wrangler secret put RESEND_API_KEY
+[vars]
+APP_ORIGIN = "https://growbuddy.app"
+MAGIC_LINK_TTL_SECONDS = "900"
+SNAPSHOT_MAX_BYTES = "8192"
