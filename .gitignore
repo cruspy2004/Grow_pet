@@ -2,3 +2,11 @@ node_modules/
 *.log
 goals.json
 dist/
+
+# Obsidian: keep shared configs, ignore per-user workspace state
+vault/.obsidian/workspace.json
+vault/.obsidian/workspace-mobile.json
+vault/.obsidian/workspaces.json
+vault/.obsidian/cache/
+vault/.obsidian/plugins/*/data.json
+vault/.trash/

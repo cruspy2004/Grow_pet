@@ -1,0 +1,5 @@
+{
+  "folder": "Logs",
+  "template": "Templates/Daily",
+  "format": "YYYY-MM-DD"
+}
