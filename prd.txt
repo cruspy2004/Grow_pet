@@ -1,0 +1,152 @@
+PACER — PRODUCT REQUIREMENTS DOCUMENT
+The pet that walks only as fast as you do.
+
+v1.0 | July 2026
+Prepared by Muhammad Haadhee Sheeraz Mian, Reg No: 478359
+
+================================================================
+1. PROBLEM
+================================================================
+Goal tracking tools require opening an app to feel their pressure.
+The moment the app is closed, the goal is invisible, and invisible
+goals get deprioritized under daily noise. Haadhee's own working
+pattern responds to **visible, ambient, fixed targets** (e.g.
+Mercedes C200 by August 28), not periodic check-ins in a separate
+tool.
+
+Why existing tools fail here:
+  - Spreadsheets and habit apps are opt-in: you only see progress
+    when you remember to look.
+  - Most progress bars show a single static percentage, not a
+    comparison against an ideal pace.
+  - Logging an amount (typing a number) is friction most people
+    drop after a few days.
+
+================================================================
+2. GOAL
+================================================================
+Build a desktop-resident pet that sits on screen at all times, and
+with **a single click** lets the user log one unit of progress
+toward any linear, date-bound goal (money saved, kilograms lost via
+calorie deficit, pages written, etc). The pet's position on a bar
+reflects actual progress; a fixed ideal line shows where the user
+should be if progressing linearly toward the deadline.
+
+>> CORE SELLING POINT: at a glance, the user knows if they are
+   ahead of or behind the pace required to hit their goal on time,
+   without opening anything.
+
+================================================================
+3. USER & USE CASE
+================================================================
+Primary user: Haadhee, single-user personal tool. Designed to
+generalize to any linear goal with a countable unit and a deadline
+(money targets, calorie-deficit-based weight loss, savings goals,
+word counts, etc).
+
+================================================================
+4. CORE USER FLOW (LOCKED)
+================================================================
+STATE       | TRIGGER                      | WHAT APPEARS
+------------|-------------------------------|----------------------
+Idle        | Default                       | Just the pet icon on
+            |                               | the desktop. Nothing
+            |                               | else.
+Toggled     | User clicks/taps the pet      | A bar appears next to
+            |                               | the pet, plus one
+            |                               | button with a small
+            |                               | dropdown arrow beside
+            |                               | it.
+Add step    | Click the main button         | Adds **+1 step**
+            |                               | instantly. Pet marker
+            |                               | moves along the bar.
+            |                               | No confirmation, no
+            |                               | typing.
+Undo step   | Click the small dropdown arrow| Reveals exactly **one
+            |                               | option: -1**. Nothing
+            |                               | else lives in this
+            |                               | menu.
+Full panel  | Right-click the pet or bar    | Opens the full app:
+            |                               | goal setup, unit
+            |                               | value, deadline,
+            |                               | ideal-vs-actual
+            |                               | stats, history,
+            |                               | multiple goals. This
+            |                               | is where all the
+            |                               | "calculations and
+            |                               | stuff" live.
+
+>> This is the entire compact surface: one button, one bar, one
+   dropdown with one option. Everything else (stats, math, goal
+   configuration, history) is pushed into the right-click panel
+   and never shown in the idle or toggled state.
+
+================================================================
+5. FUNCTIONAL REQUIREMENTS
+================================================================
+5.1 Compact widget (idle + toggled state)
+  - Pet icon always visible on desktop, no window border/chrome.
+  - Click to toggle bar + button visibility on/off.
+  - Main button click = +1 step, applied immediately, pet marker
+    animates to new position on the bar.
+  - Dropdown arrow next to the button reveals a single "-1"
+    option only.
+  - Bar visually shows: an ideal-pace marker (fixed line based on
+    today's date) and the pet's actual position (based on total
+    steps x unit value).
+
+5.2 Full panel (right-click)
+  - Goal setup: name, target amount, unit value per step, start
+    date, deadline.
+  - Support for multiple concurrent goals (e.g. Mercedes fund +
+    calorie deficit), switchable.
+  - Stats: actual total, ideal-by-today, signed delta (ahead /
+    behind), required daily pace from today to deadline.
+  - History log of every step (timestamped), with ability to
+    edit/delete entries for correction.
+  - Settings: change unit value, change deadline, reset goal,
+    delete goal.
+
+================================================================
+6. NON-FUNCTIONAL REQUIREMENTS
+================================================================
+  - Must run persistently in the background with negligible
+    CPU/RAM footprint.
+  - Must survive reboots (auto-launch on system start, optional
+    toggle).
+  - All data stored locally; no account, no server, no login for
+    v1.
+  - Single click for the core action must feel instant
+    (<100ms visual feedback).
+
+================================================================
+7. OUT OF SCOPE (v1)
+================================================================
+  - Social/multiplayer comparison ("see others moving ahead") —
+    explored as a future extension, not in v1.
+  - Mobile companion app.
+  - Cloud sync across devices.
+
+================================================================
+8. SUCCESS CRITERIA
+================================================================
+  - Haadhee uses the +1 button daily without needing to open the
+    full panel.
+  - At any moment, glancing at the pet answers "am I ahead or
+    behind" without a click.
+  - Setting up a brand-new goal (e.g. calorie deficit) takes
+    under a minute in the full panel.
+
+================================================================
+9. OPEN QUESTIONS
+================================================================
+  - Should the -1 dropdown support holding/repeating for fast
+    correction of multiple accidental clicks, or should that stay
+    in the full panel only?
+  - Does the ideal-pace line stay perfectly linear, or should it
+    support milestone-based (non-linear) targets in a future
+    version?
+
+----------------------------------------------------------------
+PACER — PRD v1.0 — Muhammad Haadhee Sheeraz Mian, Reg No: 478359
+----------------------------------------------------------------

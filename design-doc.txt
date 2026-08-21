@@ -1,0 +1,140 @@
+PACER — DESIGN DOCUMENT
+One paw forward at a time.
+
+v1.0 | July 2026
+Prepared by Muhammad Haadhee Sheeraz Mian, Reg No: 478359
+
+================================================================
+1. UI SURFACE DIAGRAM
+================================================================
+IDLE                TOGGLED (click pet)              DROPDOWN (click caret)
+ [pet]      -->      [pet]==bar==[ +1 ][v]    -->      [pet]==bar==[ +1 ][v]
+                                                                       [-1]
+
+RIGHT-CLICK anywhere on pet or bar (from any state)
+   opens FULL PANEL:
+   -------------------------------
+   | Goal: Mercedes C200         |
+   | Target / Unit / Deadline    |
+   | Actual | Ideal | Delta      |
+   | Required pace               |
+   | History (edit/delete)       |
+   | + Add another goal          |
+   -------------------------------
+
+>> The compact widget never renders more than: pet, bar, one
+   button, one caret, one dropdown item (-1). All computation and
+   configuration lives behind the right-click panel.
+
+================================================================
+2. COMPONENT BREAKDOWN
+================================================================
+COMPONENT          | RESPONSIBILITY
+-------------------|--------------------------------------------
+Pet Icon           | Always-visible, draggable, transparent-
+                    | background sprite. Single click toggles the
+                    | bar. Right-click opens the full panel.
+Bar                | Renders two markers: ideal-pace position
+                    | (computed from date, non-interactive) and
+                    | actual position (pet marker, derived from
+                    | step count x unit value).
+Button + Caret     | Button = +1 step, instant. Caret = reveals a
+                    | single -1 menu item, closes on selection or
+                    | click-away.
+Full Panel         | Standard window: goal CRUD, stats, history,
+(Electron window)  | settings. Opened via right-click, closed like
+                    | a normal window.
+
+================================================================
+3. DATA MODEL
+================================================================
+Goal {
+  id: string
+  name: string              // "Mercedes C200"
+  target: number            // 5000000
+  unitValue: number         // 1000 (rupees per step)
+  startDate: date
+  deadline: date
+  active: boolean
+}
+
+StepEvent {
+  id: string
+  goalId: string
+  delta: number             // +1 or -1
+  timestamp: datetime
+}
+
+Stored as a single local JSON file (or SQLite if step history
+grows large). No server, no account required for v1.
+
+================================================================
+4. CORE CALCULATIONS
+================================================================
+METRIC           | FORMULA
+-----------------|----------------------------------------------
+Actual           | sum(StepEvent.delta) x unitValue
+Ideal by today   | (daysElapsed / totalDays) x target
+Delta            | Actual - Ideal (positive = ahead, negative =
+                 | behind)
+Required pace    | (target - Actual) / daysRemaining
+
+>> These calculations render only in the full panel, never in the
+   compact widget, per the locked flow.
+
+================================================================
+5. TECH STACK
+================================================================
+  - Shell: Electron — renders the pet, bar, and button as a
+    transparent, always-on-top, frameless window over the desktop.
+  - Full panel: a second, standard (non-transparent) Electron
+    window, opened on right-click.
+  - Storage: local JSON file for v1 (flat structure above is small
+    enough); migrate to SQLite only if history grows unwieldy.
+  - Rendering: plain HTML/CSS/JS for both windows, no framework
+    required given the small surface area.
+
+================================================================
+6. FILE STRUCTURE (PROPOSED)
+================================================================
+pacer/
+  main.js               // Electron main process: creates both
+                          windows
+  preload.js            // safe IPC bridge
+  renderer/
+    widget.html         // pet + bar + button + caret (transparent
+                          window)
+    widget.js
+    panel.html           // full panel window
+    panel.js
+  data/
+    goals.json
+  assets/
+    pet-sprite.png
+
+================================================================
+7. INTERACTION DETAILS
+================================================================
+  - Left-click on pet: toggle bar/button visibility. Auto-hide
+    after N seconds of inactivity (configurable in panel), so idle
+    state is the default resting look.
+  - Left-click on +1 button: append a StepEvent immediately,
+    animate pet marker, no confirmation dialog.
+  - Left-click on caret: show single -1 item; selecting it appends
+    a StepEvent with delta -1.
+  - Right-click anywhere on pet or bar: open full panel window
+    (bring to front if already open).
+
+================================================================
+8. FUTURE EXTENSIONS (NOT v1)
+================================================================
+  - Ghost marker showing another person's (or a past version's)
+    pace on the same bar, for the "seeing others move ahead"
+    competitive layer described earlier.
+  - Non-linear/milestone-based ideal lines instead of a strict
+    straight line.
+  - Multiple pets on screen simultaneously, one per active goal.
+
+----------------------------------------------------------------
+PACER — Design Doc v1.0 — Muhammad Haadhee Sheeraz Mian, Reg No: 478359
+----------------------------------------------------------------

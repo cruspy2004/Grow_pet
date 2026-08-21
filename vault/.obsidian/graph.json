@@ -7,11 +7,41 @@
   "showOrphans": true,
   "collapse-color-groups": true,
   "colorGroups": [
-    { "query": "path:Product",      "color": { "a": 1, "rgb": 14701138 } },
-    { "query": "path:Architecture", "color": { "a": 1, "rgb": 5431518 } },
-    { "query": "path:Roadmap",      "color": { "a": 1, "rgb": 14725458 } },
-    { "query": "path:Decisions",    "color": { "a": 1, "rgb": 16711808 } },
-    { "query": "path:Marketing",    "color": { "a": 1, "rgb": 5766416 } }
+    {
+      "query": "path:Product",
+      "color": {
+        "a": 1,
+        "rgb": 14701138
+      }
+    },
+    {
+      "query": "path:Architecture",
+      "color": {
+        "a": 1,
+        "rgb": 5431518
+      }
+    },
+    {
+      "query": "path:Roadmap",
+      "color": {
+        "a": 1,
+        "rgb": 14725458
+      }
+    },
+    {
+      "query": "path:Decisions",
+      "color": {
+        "a": 1,
+        "rgb": 16711808
+      }
+    },
+    {
+      "query": "path:Marketing",
+      "color": {
+        "a": 1,
+        "rgb": 5766416
+      }
+    }
   ],
   "collapse-display": true,
   "showArrow": true,
@@ -23,6 +53,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 1,
+  "scale": 0.24954878179115514,
   "close": true
 }
