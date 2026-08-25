@@ -8,7 +8,8 @@ const {
   dialog,
   Menu,
   Tray,
-  screen
+  screen,
+  nativeImage
 } = require('electron');
 const fs = require('fs/promises');
 const fsSync = require('fs');
@@ -150,6 +151,10 @@ async function loadState() {
     logger.info('state-loaded', { goals: state.goals.length, events: state.stepEvents.length });
   } catch (error) {
     state = normalizeState(DEFAULT_STATE);
+    // A pet that vanishes on reboot is not ambient, which is the whole point
+    // (prd.txt section 6). Default an installed build to starting with the OS;
+    // the tray and the panel both expose the toggle.
+    state.settings.launchAtStartup = app.isPackaged;
     logger.warn('state-load-fallback', { message: error.message });
     await scheduleSave();
   }
@@ -490,15 +495,7 @@ async function updateSettings(partial) {
     hotkeyPlusOne: String(partial.hotkeyPlusOne ?? state.settings.hotkeyPlusOne),
     widgetPosition: state.settings.widgetPosition
   };
-  try {
-    app.setLoginItemSettings({
-      openAtLogin: state.settings.launchAtStartup,
-      path: process.execPath,
-      args: []
-    });
-  } catch (error) {
-    logger.warn('login-item-set-failed', { message: error.message });
-  }
+  applyLoginItemSetting();
   registerHotkey();
   await scheduleSave();
   sendSnapshot();
@@ -657,23 +654,93 @@ async function runProSync() {
   }
 }
 
+// The tray is how the widget gets back once it is hidden, and the only way to
+// actually quit -- closing windows leaves the app resident on purpose.
 function buildTrayIcon() {
   try {
     const iconPath = path.join(__dirname, 'assets', 'me-1.png');
     if (!fsSync.existsSync(iconPath)) {
       return;
     }
-    tray = new Tray(iconPath);
+    // The sprite is 168x207. Handing that to Tray gives Windows a squashed,
+    // badly downscaled icon, so resize to a square tray size first.
+    const icon = nativeImage.createFromPath(iconPath).resize({
+      width: 32,
+      height: 32,
+      quality: 'best'
+    });
+    tray = new Tray(icon);
     tray.setToolTip('Grow Buddy');
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: 'Show widget', click: () => createWidgetWindow() },
       { label: 'Open panel', click: () => createPanelWindow() },
       { type: 'separator' },
-      { label: 'Quit', click: () => { quitting = true; app.quit(); } }
+      {
+        label: 'Start with Windows',
+        type: 'checkbox',
+        checked: state.settings.launchAtStartup,
+        click: (item) => updateSettings({ launchAtStartup: item.checked })
+      },
+      { label: 'Check for updates', click: () => checkForUpdates({ notifyWhenCurrent: true }) },
+      { type: 'separator' },
+      { label: 'Quit Grow Buddy', click: () => { quitting = true; app.quit(); } }
     ]));
     tray.on('click', () => createPanelWindow());
   } catch (error) {
     logger.warn('tray-init-failed', { message: error.message });
+  }
+}
+
+function applyLoginItemSetting() {
+  // Only meaningful for an installed build; in development process.execPath is
+  // the Electron binary, and registering that would launch a bare Electron.
+  if (!app.isPackaged) {
+    return;
+  }
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: state.settings.launchAtStartup,
+      path: process.execPath,
+      args: []
+    });
+  } catch (error) {
+    logger.warn('login-item-set-failed', { message: error.message });
+  }
+}
+
+// Updates come from GitHub Releases, configured under build.publish in
+// package.json. Unsigned builds still update fine on Windows; the installer is
+// what SmartScreen complains about, not the update check.
+function checkForUpdates({ notifyWhenCurrent = false } = {}) {
+  if (!app.isPackaged) {
+    if (notifyWhenCurrent) {
+      showNotification('Grow Buddy', 'Update checks only run in an installed build.');
+    }
+    return;
+  }
+  try {
+    const { autoUpdater } = require('electron-updater');
+    autoUpdater.logger = null;
+    autoUpdater.autoDownload = true;
+    autoUpdater.removeAllListeners();
+    autoUpdater.on('update-downloaded', (info) => {
+      logger.info('update-downloaded', { version: info?.version });
+      showNotification('Grow Buddy updated', `Version ${info?.version} installs next time you quit.`);
+    });
+    autoUpdater.on('update-not-available', () => {
+      if (notifyWhenCurrent) {
+        showNotification('Grow Buddy', `You are on the latest version (${app.getVersion()}).`);
+      }
+    });
+    autoUpdater.on('error', (error) => {
+      logger.warn('update-check-failed', { message: error?.message });
+      if (notifyWhenCurrent) {
+        showNotification('Grow Buddy', 'Could not check for updates right now.');
+      }
+    });
+    autoUpdater.checkForUpdates();
+  } catch (error) {
+    logger.warn('updater-unavailable', { message: error.message });
   }
 }
 
@@ -703,6 +770,10 @@ app.whenReady().then(async () => {
   scheduleDailyNotify();
   scheduleProSync();
   registerHotkey();
+  // Keep the OS registration in step with the saved setting on every launch, so
+  // it survives a reinstall or a move of the executable.
+  applyLoginItemSetting();
+  setTimeout(() => checkForUpdates(), 10 * 1000);
   sendSnapshot();
 
   ipcMain.handle('app:get-state', async () => getSnapshot());

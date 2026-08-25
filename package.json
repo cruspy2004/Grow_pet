@@ -19,10 +19,10 @@
     "dist:linux": "electron-builder --linux"
   },
   "dependencies": {
-    "electron": "^31.0.0",
     "electron-updater": "^6.2.1"
   },
   "devDependencies": {
+    "electron": "^31.0.0",
     "electron-builder": "^24.13.3"
   },
   "build": {
@@ -41,18 +41,25 @@
       "assets/**/*",
       "!**/*.map"
     ],
-    "extraMetadata": {
-      "main": "main.js"
-    },
     "publish": [
       {
         "provider": "github",
+        "owner": "cruspy2004",
+        "repo": "Grow_pet",
         "releaseType": "release"
       }
     ],
+    "extraMetadata": {
+      "main": "main.js"
+    },
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "build/icon.ico"
     },
@@ -60,11 +67,23 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "artifactName": "GrowBuddy-Setup-${version}.${ext}"
+      "artifactName": "GrowBuddy-Setup-${version}.${ext}",
+      "shortcutName": "Grow Buddy",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "uninstallDisplayName": "Grow Buddy ${version}",
+      "deleteAppDataOnUninstall": false
     },
     "mac": {
       "target": [
-        { "target": "dmg", "arch": ["x64", "arm64"] }
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
       "icon": "build/icon.icns",
       "category": "public.app-category.productivity",
@@ -73,7 +92,12 @@
     },
     "linux": {
       "target": [
-        { "target": "AppImage", "arch": ["x64"] }
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "build/icon.png",
       "category": "Utility"

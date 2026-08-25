@@ -17,7 +17,7 @@ machine.
 ## Install
 
 Download the latest release for your OS from the
-[releases page](https://github.com/haadheesheeraz/grow_buddy/releases/latest).
+[releases page](https://github.com/cruspy2004/Grow_pet/releases/latest).
 
 - **Windows:** `GrowBuddy-Setup-x.y.z.exe`. Windows 10 and 11. Until a
   code-signing cert is in place, SmartScreen may warn — click
@@ -27,12 +27,33 @@ Download the latest release for your OS from the
 - **Linux:** `GrowBuddy-x.y.z-linux-x86_64.AppImage`. Run
   `chmod +x` and double-click.
 
+### It stays running
+
+Grow Buddy is meant to be ambient, so an installed copy behaves like a
+widget rather than an app you open:
+
+- It **starts with your computer** by default. Turn that off from the
+  tray icon (*Start with Windows*) or in the panel's settings.
+- Closing the panel window does **not** quit it — the pet stays on screen
+  and the app stays in the tray. Quit deliberately via **tray → Quit Grow
+  Buddy**.
+- If you hide the pet, bring it back with **tray → Show widget**.
+- It **updates itself** from the releases page and applies the update the
+  next time you quit. You can force a check from **tray → Check for
+  updates**.
+- Uninstalling leaves your goals and history in place, so reinstalling
+  picks up where you left off. To erase them, delete
+  `%APPDATA%\Grow Buddy` after uninstalling.
+
 ## What you get
 
 - A transparent, always-on-top pet that lives in the corner of your screen.
-- A slim bar showing your **actual** position and a fixed **ideal-pace**
-  line. Ahead = pet past the line. Behind = pet behind the line.
-- **Click the pet** = log +1 step. **Caret dropdown** = -1.
+  When idle it is *only* the sprite — no window, no border, no panel.
+- **Drag the pet** anywhere on screen. It remembers where you put it.
+- **Click the pet** to unfold a slim bar showing your **actual** position
+  and a fixed **ideal-pace** line. Ahead = pet past the line. Behind =
+  pet behind the line. Click again to fold it away.
+- **`+1` button** = log one step, instantly. **Caret dropdown** = -1.
 - **Right-click** anywhere on the pet or bar to open the full panel.
 - Multiple goals, sprite variants, per-goal bar color, custom start
   offset for the ideal line.
@@ -55,8 +76,8 @@ leaves your machine on the free tier.
 ## Development
 
 ```bash
-git clone https://github.com/haadheesheeraz/grow_buddy
-cd grow_buddy
+git clone https://github.com/cruspy2004/Grow_pet
+cd Grow_pet
 npm install
 npm start                      # launch the app
 npm test                       # run compute + state tests

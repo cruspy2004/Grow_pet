@@ -1,0 +1,77 @@
+name: Release
+
+# Tag a version to ship it:
+#   npm version patch   (or minor / major)  -- this creates the v* tag
+#   git push --follow-tags
+#
+# The runner builds the installers and uploads them to a GitHub Release, along
+# with the latest.yml that electron-updater reads to offer in-app updates.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  release:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            build: npm run dist:win
+          - os: ubuntu-latest
+            build: npm run dist:linux
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Icons are generated rather than committed as binaries people have to
+      # remember to refresh. Needs a display on Linux for the Electron run.
+      - name: Generate icons (Windows)
+        if: runner.os == 'Windows'
+        run: npx electron scripts/make-icons.js
+
+      - name: Generate icons (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run --auto-servernum npx electron scripts/make-icons.js
+
+      - name: Build and publish
+        run: ${{ matrix.build }} -- --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No code-signing certificate yet. Windows SmartScreen will warn on
+          # first run until one is bought and CSC_LINK / CSC_KEY_PASSWORD are set
+          # as repository secrets.
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ runner.os }}
+          path: |
+            dist/*.exe
+            dist/*.AppImage
+            dist/latest*.yml
+          if-no-files-found: warn

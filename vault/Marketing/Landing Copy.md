@@ -49,7 +49,7 @@ Master file for the copy on `web/index.html`. Update here first, then port to HT
 
 ## Download
 
-Three cards, one per OS. Each card links to `github.com/haadheesheeraz/grow_buddy/releases/latest`.
+Three cards, one per OS. Each card links to `github.com/cruspy2004/Grow_pet/releases/latest`.
 
 Under Windows card:
 
