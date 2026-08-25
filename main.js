@@ -25,6 +25,10 @@ app.disableHardwareAcceleration();
 const userDataPath = app.getPath('userData');
 app.setPath('cache', path.join(userDataPath, 'Cache'));
 app.setPath('crashDumps', path.join(userDataPath, 'Crashpad'));
+// Electron re-derives userData from cache, so the two lines above quietly move it
+// to <userData>/Cache/<name> — which put goals.json inside a cache directory.
+// Re-assert it so user data sits where it belongs.
+app.setPath('userData', userDataPath);
 
 const logger = createLogger(path.join(userDataPath, 'logs'));
 
@@ -71,7 +75,67 @@ function scheduleSave() {
   return saveQueue;
 }
 
+// Two past mistakes stranded user data: the app shipped as "grow_pet" before the
+// rename, and setPath('cache') used to push userData down into <userData>/Cache/<name>.
+// On a first run with no data file, adopt the most recently written of those
+// stores. Originals are copied, never moved, so a wrong guess loses nothing.
+function legacyDataPaths() {
+  const appData = app.getPath('appData');
+  return [
+    path.join(appData, 'Grow Buddy', 'Cache', 'Grow Buddy', 'goals.json'),
+    path.join(appData, 'grow_pet', 'Cache', 'grow_pet', 'goals.json'),
+    path.join(appData, 'grow_pet', 'goals.json')
+  ];
+}
+
+async function migrateLegacyUserData() {
+  const target = dataFilePath();
+  try {
+    await fs.access(target);
+    return;
+  } catch {
+    // No data at the current location — a legacy store may still exist.
+  }
+
+  const candidates = [];
+  for (const candidatePath of legacyDataPaths()) {
+    try {
+      const [stats, raw] = await Promise.all([
+        fs.stat(candidatePath),
+        fs.readFile(candidatePath, 'utf8')
+      ]);
+      candidates.push({
+        path: candidatePath,
+        modifiedAt: stats.mtimeMs,
+        state: normalizeState(JSON.parse(raw))
+      });
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        logger.warn('legacy-candidate-unreadable', { path: candidatePath, message: error.message });
+      }
+    }
+  }
+  if (!candidates.length) {
+    return;
+  }
+
+  const newest = candidates.sort((left, right) => right.modifiedAt - left.modifiedAt)[0];
+  try {
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.writeFile(target, JSON.stringify(newest.state, null, 2), 'utf8');
+    logger.info('legacy-data-migrated', {
+      from: newest.path,
+      goals: newest.state.goals.length,
+      events: newest.state.stepEvents.length,
+      otherCandidates: candidates.length - 1
+    });
+  } catch (error) {
+    logger.warn('legacy-migration-failed', { message: error.message });
+  }
+}
+
 async function loadState() {
+  await migrateLegacyUserData();
   try {
     const raw = await fs.readFile(dataFilePath(), 'utf8');
     state = normalizeState(JSON.parse(raw));
