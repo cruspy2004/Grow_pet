@@ -47,15 +47,13 @@ jobs:
 
       - run: npm ci
 
-      # Icons are generated rather than committed as binaries people have to
-      # remember to refresh. Needs a display on Linux for the Electron run.
-      - name: Generate icons (Windows)
-        if: runner.os == 'Windows'
-        run: npx electron scripts/make-icons.js
-
-      - name: Generate icons (Linux)
-        if: runner.os == 'Linux'
-        run: xvfb-run --auto-servernum npx electron scripts/make-icons.js
+      # build/icon.png and build/icon.ico are committed, so nothing is generated
+      # here. Regenerate them locally with `npm run icons` whenever the sprite
+      # changes -- doing it on CI meant running Electron headless, which needs a
+      # virtual display and a pile of system libraries on Linux for no benefit.
+      - name: Check icons are present
+        shell: bash
+        run: test -f build/icon.png && test -f build/icon.ico
 
       - name: Build and publish
         run: ${{ matrix.build }} -- --publish always
