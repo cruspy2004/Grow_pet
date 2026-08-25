@@ -24,6 +24,14 @@ contextBridge.exposeInMainWorld('growBuddy', {
     ipcRenderer.on('state:snapshot', listener);
     return () => ipcRenderer.removeListener('state:snapshot', listener);
   },
+  setWidgetMode: (mode) => ipcRenderer.invoke('widget:set-mode', mode),
+  getWidgetPosition: () => ipcRenderer.invoke('widget:get-position'),
+  moveWidget: (payload) => ipcRenderer.send('widget:move-to', payload),
+  endWidgetDrag: () => ipcRenderer.invoke('widget:drag-end'),
   notifyRightClick: () => ipcRenderer.send('widget:right-click'),
-  showPanelFromWidget: () => ipcRenderer.send('widget:toggle-panel')
+  onWidgetLayout: (callback) => {
+    const listener = (_event, layout) => callback(layout);
+    ipcRenderer.on('widget:layout', listener);
+    return () => ipcRenderer.removeListener('widget:layout', listener);
+  }
 });

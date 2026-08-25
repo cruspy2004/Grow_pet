@@ -8,7 +8,8 @@ const DEFAULT_STATE = {
     autoHideSeconds: 6,
     launchAtStartup: false,
     notifyWhenBehind: false,
-    hotkeyPlusOne: 'CommandOrControl+Alt+='
+    hotkeyPlusOne: 'CommandOrControl+Alt+=',
+    widgetPosition: null
   },
   pro: {
     enabled: false,
@@ -20,6 +21,18 @@ const DEFAULT_STATE = {
   goals: [],
   stepEvents: []
 };
+
+function normalizeWidgetPosition(value) {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+  const x = Number(value.x);
+  const y = Number(value.y);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return null;
+  }
+  return { x, y };
+}
 
 function normalizeGoal(goal, index) {
   const safe = goal && typeof goal === 'object' ? goal : {};
@@ -77,7 +90,8 @@ function normalizeState(rawInput) {
       autoHideSeconds: Math.max(0, Number(settings.autoHideSeconds) || 0),
       launchAtStartup: Boolean(settings.launchAtStartup),
       notifyWhenBehind: Boolean(settings.notifyWhenBehind),
-      hotkeyPlusOne: String(settings.hotkeyPlusOne || DEFAULT_STATE.settings.hotkeyPlusOne)
+      hotkeyPlusOne: String(settings.hotkeyPlusOne || DEFAULT_STATE.settings.hotkeyPlusOne),
+      widgetPosition: normalizeWidgetPosition(settings.widgetPosition)
     },
     pro: {
       enabled: Boolean(pro.enabled),
@@ -105,6 +119,7 @@ module.exports = {
   DEFAULT_STATE,
   normalizeGoal,
   normalizeStepEvent,
+  normalizeWidgetPosition,
   normalizeState,
   migrateFromLegacy
 };

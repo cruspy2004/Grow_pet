@@ -6,6 +6,7 @@
   --danger: #ff7a90;
   --accent: #8fd3ff;
   --bar-color: #5fb8ff;
+  --pet-box: 88px;
 }
 
 * {
@@ -17,14 +18,12 @@ body {
   width: 100%;
   height: 100%;
   margin: 0;
+  padding: 0;
   overflow: hidden;
   background: transparent;
   font-family: 'Segoe UI', system-ui, sans-serif;
   color: var(--text);
-}
-
-body {
-  -webkit-app-region: no-drag;
+  user-select: none;
 }
 
 button {
@@ -32,116 +31,114 @@ button {
   color: inherit;
 }
 
+img {
+  -webkit-user-drag: none;
+}
+
+/* ---------------------------------------------------------------- shell */
+
 .widget-shell {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 8px;
-}
-
-.pet-shell {
-  position: relative;
-  display: grid;
-  grid-template-columns: 12px 48px minmax(220px, 1fr) auto;
-  grid-template-rows: auto auto auto;
-  column-gap: 8px;
-  row-gap: 4px;
-  width: 100%;
-  height: 100%;
-  padding: 8px 10px;
-  background: rgba(11, 14, 18, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 18px;
-  backdrop-filter: blur(6px);
-  align-items: center;
-}
-
-.pet-shell[data-state="empty"] {
-  grid-template-columns: 12px 48px 1fr;
-}
-
-.drag-handle {
-  -webkit-app-region: drag;
-  grid-column: 1 / 2;
-  grid-row: 1 / 4;
-  align-self: stretch;
-  width: 6px;
-  border-radius: 4px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
-  margin: 4px 0;
-  cursor: grab;
-}
-
-.pet-button {
-  -webkit-app-region: no-drag;
-  grid-column: 2 / 3;
-  grid-row: 1 / 4;
-  width: 48px;
-  height: 48px;
-  padding: 0;
-  border: none;
   background: transparent;
-  cursor: pointer;
-  align-self: center;
-  transition: transform 90ms ease;
 }
 
-.pet-button:active {
-  transform: scale(0.92);
+.widget-shell[data-menu="up"] {
+  flex-direction: column-reverse;
 }
 
-.pet-standalone {
+.pet-row {
+  display: flex;
+  align-items: center;
+  flex: 0 0 var(--pet-box);
+  height: var(--pet-box);
+  width: 100%;
+}
+
+.widget-shell[data-side="right"] .pet-row {
+  flex-direction: row-reverse;
+}
+
+/* ------------------------------------------------------------------ pet */
+
+.pet-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--pet-box);
+  width: var(--pet-box);
+  height: var(--pet-box);
+  background: transparent;
+  border: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.pet-slot:active {
+  cursor: grabbing;
+}
+
+.pet-sprite {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  /* The sprite has 8px of slack inside the 88px window, so the shadow has to
+     stay within that or `overflow: hidden` shears its bottom edge off. */
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+  transition: width 140ms ease, height 140ms ease;
+}
+
+.widget-shell[data-mode="expanded"] .pet-sprite,
+.widget-shell[data-mode="menu"] .pet-sprite {
   width: 44px;
   height: 44px;
-  object-fit: contain;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35));
-  pointer-events: none;
 }
 
-.controls {
-  display: contents;
-}
+/* --------------------------------------------------------- control pill */
 
-.goal-strip {
-  grid-column: 3 / 5;
-  grid-row: 1 / 2;
+.control-pill {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
   min-width: 0;
-  padding-right: 4px;
+  height: 44px;
+  margin: 0 4px;
+  padding: 0 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(11, 14, 18, 0.62);
+  backdrop-filter: blur(8px);
 }
 
-.goal-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.widget-shell[data-mode="expanded"] .control-pill,
+.widget-shell[data-mode="menu"] .control-pill {
+  display: flex;
 }
 
-.goal-meta {
-  margin-top: 2px;
-  font-size: 11px;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.widget-shell[data-side="right"] .control-pill {
+  flex-direction: row-reverse;
 }
 
-.bar-row {
+.bar-wrap {
   position: relative;
-  grid-column: 3 / 4;
-  grid-row: 2 / 4;
-  width: 100%;
-  min-width: 220px;
-  padding: 22px 0 22px;
+  display: flex;
+  align-items: center;
+  flex: 0 0 168px;
+  width: 168px;
+  height: 20px;
 }
 
 .progress-bar {
   position: relative;
   width: 100%;
-  height: 14px;
+  height: 10px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
 
@@ -155,155 +152,152 @@ button {
 
 .ideal-line {
   position: absolute;
-  top: -5px;
-  bottom: -5px;
+  top: 0;
+  bottom: 0;
+  left: 0;
   width: 2px;
-  background: rgba(255, 255, 255, 0.85);
+  margin-left: -1px;
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
-  transform: translateX(-1px);
 }
 
 .marker-sprite {
   position: absolute;
+  top: 2px;
   left: 0;
-  width: 22px;
-  height: 22px;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
   object-fit: contain;
   pointer-events: none;
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
-  transform: translateX(-11px);
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
   transition: left 240ms ease;
 }
 
-.marker-sprite-top {
-  top: 0;
-  opacity: 0.55;
-}
-
-.marker-sprite-bottom {
-  bottom: 0;
-}
-
 .action-row {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: 0;
-  grid-column: 4 / 5;
-  grid-row: 2 / 4;
-  justify-self: end;
-  align-self: center;
-  -webkit-app-region: no-drag;
+  flex: 0 0 auto;
 }
 
 .step-button,
 .caret-button,
 .dropdown-item {
-  -webkit-app-region: no-drag;
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.06);
   color: var(--text);
-  min-height: 30px;
+  height: 28px;
 }
 
 .step-button {
   min-width: 40px;
-  padding: 0 12px;
-  border-radius: 12px 0 0 12px;
-  font-weight: 700;
+  padding: 0 10px;
+  border-radius: 10px 0 0 10px;
   border-right: none;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .caret-button {
   width: 26px;
   min-width: 26px;
   padding: 0;
-  border-radius: 0 12px 12px 0;
+  border-radius: 0 10px 10px 0;
   font-size: 11px;
+  line-height: 1;
 }
 
 .step-button:hover,
 .caret-button:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.step-button:active,
+.caret-button:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* -------------------------------------------------------------- dropdown */
+
+.menu-row {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 48px;
+  height: 48px;
+  padding: 0 12px;
+}
+
+.widget-shell[data-mode="menu"] .menu-row {
+  display: flex;
+}
+
+.widget-shell[data-side="right"] .menu-row {
+  justify-content: flex-start;
 }
 
 .dropdown {
-  position: absolute;
-  right: 0;
-  top: 36px;
-  min-width: 72px;
   padding: 4px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 10;
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(8px);
 }
 
 .dropdown-item {
-  width: 100%;
-  min-height: 28px;
+  min-width: 72px;
+  height: 30px;
   border-radius: 8px;
   color: var(--danger);
-  background: rgba(255, 122, 144, 0.10);
+  background: rgba(255, 122, 144, 0.12);
   border: 1px solid transparent;
+  font-weight: 700;
 }
 
 .dropdown-item:hover {
-  background: rgba(255, 122, 144, 0.18);
+  background: rgba(255, 122, 144, 0.22);
 }
 
-.hidden {
-  display: none !important;
+/* -------------------------------------------------------------- states */
+
+.widget-shell.behind .progress-fill {
+  background: linear-gradient(90deg, rgba(255, 122, 144, 0.55), var(--danger));
 }
 
-.controls-collapsed .action-row,
-.controls-collapsed .goal-strip {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 200ms ease;
+.widget-shell[data-state="empty"] .progress-bar {
+  opacity: 0.5;
 }
 
-.celebrate-badge {
-  position: absolute;
-  top: -12px;
-  right: 12px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #ffe08a, #ffb347);
-  color: #2b1a04;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  box-shadow: 0 6px 16px rgba(255, 179, 71, 0.4);
-  animation: celebrate-pop 900ms ease;
+.widget-shell[data-state="empty"] .marker-sprite,
+.widget-shell[data-state="empty"] .ideal-line {
+  display: none;
 }
 
-.pet-button.celebrating .pet-standalone {
-  animation: celebrate-bounce 900ms ease infinite;
+.pet-sprite.celebrating {
+  animation: celebrate-glow 1000ms ease-in-out infinite;
 }
 
-@keyframes celebrate-pop {
-  0% { transform: scale(0.6); opacity: 0; }
-  60% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes celebrate-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+/* Kept inside the sprite's 8px of slack so the bounce and the glow are not
+   sheared off by the window edge. */
+@keyframes celebrate-glow {
+  0%,
+  100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
+  }
+  50% {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 5px rgba(255, 209, 102, 0.95));
+  }
 }
 
 @keyframes bump {
-  0% { transform: translateX(-11px) scale(1); }
-  35% { transform: translateX(-11px) scale(1.2); }
-  100% { transform: translateX(-11px) scale(1); }
+  0% { transform: scale(1); }
+  35% { transform: scale(1.28); }
+  100% { transform: scale(1); }
 }
 
 .marker-sprite.bump {
   animation: bump 220ms ease;
-}
-
-.pet-shell.behind .progress-fill {
-  background: linear-gradient(90deg, rgba(255, 122, 144, 0.55), var(--danger));
 }

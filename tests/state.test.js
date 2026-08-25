@@ -54,6 +54,21 @@ test('normalizeState preserves pro shares', () => {
   assert.equal(state.pro.shares[0].direction, 'outgoing');
 });
 
+test('normalizeState keeps a valid widget position and rejects a broken one', () => {
+  assert.equal(normalizeState(null).settings.widgetPosition, null, 'defaults to null');
+
+  const kept = normalizeState({ settings: { widgetPosition: { x: 120, y: -40 } } });
+  assert.deepEqual(kept.settings.widgetPosition, { x: 120, y: -40 });
+
+  for (const bad of [{ x: 'a', y: 2 }, { x: 1 }, { x: NaN, y: 0 }, 'nope', []]) {
+    assert.equal(
+      normalizeState({ settings: { widgetPosition: bad } }).settings.widgetPosition,
+      null,
+      `rejects ${JSON.stringify(bad)}`
+    );
+  }
+});
+
 test('normalizeState defaults every goal to unarchived', () => {
   const state = normalizeState({ goals: [{ name: 'X' }] });
   assert.equal(state.goals[0].archived, false);

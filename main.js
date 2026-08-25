@@ -19,6 +19,7 @@ const { normalizeState, CURRENT_SCHEMA_VERSION, DEFAULT_STATE } = require('./src
 const { computeGoalMetrics } = require('./src/compute');
 const { createLogger } = require('./src/logger');
 const proClient = require('./src/proClient');
+const widgetLayout = require('./src/widgetLayout');
 
 app.disableHardwareAcceleration();
 const userDataPath = app.getPath('userData');
@@ -28,6 +29,11 @@ app.setPath('crashDumps', path.join(userDataPath, 'Crashpad'));
 const logger = createLogger(path.join(userDataPath, 'logs'));
 
 const dataFilePath = () => path.join(app.getPath('userData'), 'goals.json');
+
+// Widget window geometry lives in src/widgetLayout.js as pure functions so it can
+// be unit tested without Electron; main.js only supplies the live screen data.
+const { PET_BOX } = widgetLayout;
+
 const spriteAssetMap = {
   avatar: ['me-1.png', 'me-2.png', 'me-3.png'],
   naruto: ['naruto-1.png', 'naruto-2.png', 'naruto-3.png']
@@ -43,6 +49,12 @@ let dailyNotifyTimer = null;
 let syncTimer = null;
 let currentHotkey = '';
 let quitting = false;
+// Screen coords of the top-left of the PET_BOX square. The sprite never moves
+// when the widget changes mode; only the surrounding window grows around it.
+let widgetAnchor = { x: 0, y: 0 };
+let widgetMode = 'idle';
+let widgetSide = 'left';
+let widgetMenuUp = false;
 
 function scheduleSave() {
   saveQueue = saveQueue.then(async () => {
@@ -143,22 +155,82 @@ function sendSnapshot() {
   }
 }
 
+function workAreaNear(x, y) {
+  return screen.getDisplayNearestPoint({ x: Math.round(x), y: Math.round(y) }).workArea;
+}
+
+function defaultWidgetAnchor() {
+  return widgetLayout.defaultWidgetAnchor(screen.getPrimaryDisplay().workArea);
+}
+
+function anchorIsOnScreen(position) {
+  return widgetLayout.anchorIsOnScreen(
+    position,
+    screen.getAllDisplays().map((display) => display.workArea)
+  );
+}
+
+function computeWidgetBounds(mode, anchor) {
+  return widgetLayout.computeWidgetBounds(
+    mode,
+    anchor,
+    workAreaNear(anchor.x + PET_BOX / 2, anchor.y + PET_BOX / 2)
+  );
+}
+
+function applyWidgetMode(mode) {
+  widgetMode = widgetLayout.normalizeMode(mode);
+  const bounds = computeWidgetBounds(widgetMode, widgetAnchor);
+  widgetSide = bounds.side;
+  widgetMenuUp = bounds.menuUp;
+  if (widgetWindow && !widgetWindow.isDestroyed()) {
+    widgetWindow.setBounds({
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height
+    });
+    // Re-derive from what was actually applied: on a work area too small to hold
+    // the expanded row the bounds get clamped, and keeping the stale anchor would
+    // let the sprite drift a little further on every mode change.
+    widgetAnchor = anchorFromWidgetBounds();
+  }
+  return { mode: widgetMode, side: widgetSide, menuUp: widgetMenuUp };
+}
+
+// Reverse of computeWidgetBounds: recover the pet square from the live window.
+function anchorFromWidgetBounds() {
+  if (!widgetWindow || widgetWindow.isDestroyed()) {
+    return widgetAnchor;
+  }
+  return widgetLayout.anchorFromWidgetBounds(widgetWindow.getBounds(), widgetSide, widgetMenuUp);
+}
+
+function persistWidgetAnchor() {
+  state.settings.widgetPosition = { x: Math.round(widgetAnchor.x), y: Math.round(widgetAnchor.y) };
+  return scheduleSave();
+}
+
 function createWidgetWindow() {
   if (widgetWindow && !widgetWindow.isDestroyed()) {
     return widgetWindow;
   }
-  const display = screen.getPrimaryDisplay();
-  const { width } = display.workAreaSize;
+  const saved = state.settings.widgetPosition;
+  widgetAnchor = anchorIsOnScreen(saved)
+    ? { x: Number(saved.x), y: Number(saved.y) }
+    : defaultWidgetAnchor();
+  widgetMode = 'idle';
+  const bounds = computeWidgetBounds('idle', widgetAnchor);
+  widgetSide = bounds.side;
+  widgetMenuUp = bounds.menuUp;
   widgetWindow = new BrowserWindow({
-    width: 460,
-    height: 190,
-    x: Math.max(20, width - 500),
-    y: 60,
-    minWidth: 360,
-    minHeight: 160,
+    width: bounds.width,
+    height: bounds.height,
+    x: bounds.x,
+    y: bounds.y,
     frame: false,
     transparent: true,
-    resizable: true,
+    resizable: false,
     alwaysOnTop: true,
     skipTaskbar: true,
     hasShadow: false,
@@ -343,7 +415,8 @@ async function updateSettings(partial) {
     autoHideSeconds: Math.max(0, Number(partial.autoHideSeconds ?? state.settings.autoHideSeconds) || 0),
     launchAtStartup: Boolean(partial.launchAtStartup ?? state.settings.launchAtStartup),
     notifyWhenBehind: Boolean(partial.notifyWhenBehind ?? state.settings.notifyWhenBehind),
-    hotkeyPlusOne: String(partial.hotkeyPlusOne ?? state.settings.hotkeyPlusOne)
+    hotkeyPlusOne: String(partial.hotkeyPlusOne ?? state.settings.hotkeyPlusOne),
+    widgetPosition: state.settings.widgetPosition
   };
   try {
     app.setLoginItemSettings({
@@ -616,11 +689,52 @@ app.whenReady().then(async () => {
     return getSnapshot();
   });
 
-  ipcMain.on('widget:right-click', () => {
-    createPanelWindow();
-    sendSnapshot();
+  ipcMain.handle('widget:set-mode', async (_event, mode) => applyWidgetMode(mode));
+  ipcMain.handle('widget:get-position', async () => {
+    if (!widgetWindow || widgetWindow.isDestroyed()) {
+      return { x: Math.round(widgetAnchor.x), y: Math.round(widgetAnchor.y) };
+    }
+    const bounds = widgetWindow.getBounds();
+    return { x: bounds.x, y: bounds.y };
   });
-  ipcMain.on('widget:toggle-panel', () => {
+  ipcMain.on('widget:move-to', (_event, payload) => {
+    if (!widgetWindow || widgetWindow.isDestroyed()) {
+      return;
+    }
+    const x = Number(payload?.x);
+    const y = Number(payload?.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      return;
+    }
+    // What the user is dragging is the pet square, not the window, so clamp and
+    // pick the display from the square. Clamping the window would leave a dead
+    // zone the width of the control pill along the right edge while expanded.
+    const bounds = widgetWindow.getBounds();
+    const proposed = widgetLayout.anchorFromWidgetBounds(
+      { ...bounds, x, y },
+      widgetSide,
+      widgetMenuUp
+    );
+    const area = workAreaNear(proposed.x + PET_BOX / 2, proposed.y + PET_BOX / 2);
+    widgetAnchor = widgetLayout.clampAnchor(proposed, area);
+    const previousSide = widgetSide;
+    const previousMenuUp = widgetMenuUp;
+    const layout = applyWidgetMode(widgetMode);
+    // Dragging an open widget past an edge flips which way the row unfolds; the
+    // renderer has to mirror itself to keep the sprite over the same pixels.
+    if (layout.side !== previousSide || layout.menuUp !== previousMenuUp) {
+      widgetWindow.webContents.send('widget:layout', layout);
+    }
+  });
+  ipcMain.handle('widget:drag-end', async () => {
+    widgetAnchor = anchorFromWidgetBounds();
+    const layout = applyWidgetMode(widgetMode);
+    widgetAnchor = anchorFromWidgetBounds();
+    await persistWidgetAnchor();
+    return layout;
+  });
+
+  ipcMain.on('widget:right-click', () => {
     createPanelWindow();
     sendSnapshot();
   });

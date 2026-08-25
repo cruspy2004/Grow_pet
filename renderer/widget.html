@@ -8,40 +8,33 @@
     <link rel="stylesheet" href="widget.css" />
   </head>
   <body>
-    <main class="widget-shell" id="app">
-      <section class="pet-shell" id="petShell" data-state="empty">
-        <div class="drag-handle" id="dragHandle" title="Drag to move Grow Buddy"></div>
+    <main class="widget-shell" id="app" data-mode="idle" data-side="left" data-menu="down" data-state="empty">
+      <div class="pet-row" id="petRow">
+        <div class="pet-slot" id="petSlot" title="Drag to move · click to toggle · right-click for the panel">
+          <img class="pet-sprite" id="petSprite" alt="Grow Buddy pet" draggable="false" />
+        </div>
 
-        <button class="pet-button" id="petButton" type="button" aria-label="Log +1 step">
-          <img class="pet-standalone" id="petSprite" alt="" />
-        </button>
-
-        <section class="controls" id="controls">
-          <div class="goal-strip">
-            <div class="goal-name" id="goalName">No active goal</div>
-            <div class="goal-meta" id="goalMeta">Right-click to open the panel.</div>
-          </div>
-
-          <div class="bar-row">
-            <img class="marker-sprite marker-sprite-top" id="idealSprite" alt="" />
+        <div class="control-pill" id="controls">
+          <div class="bar-wrap" id="barWrap">
             <div class="progress-bar" id="progressBar">
               <div class="progress-fill" id="progressFill"></div>
               <div class="ideal-line" id="idealLine"></div>
             </div>
-            <img class="marker-sprite marker-sprite-bottom" id="actualSprite" alt="" />
+            <img class="marker-sprite" id="actualSprite" alt="" draggable="false" />
           </div>
 
           <div class="action-row" id="actionRow">
             <button class="step-button" id="addStepButton" type="button" title="+1 step">+1</button>
             <button class="caret-button" id="caretButton" type="button" aria-label="Open correction menu">&#9662;</button>
-            <div class="dropdown hidden" id="dropdownMenu">
-              <button class="dropdown-item" id="undoStepButton" type="button">-1</button>
-            </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        <div class="celebrate-badge hidden" id="celebrateBadge">Goal reached</div>
-      </section>
+      <div class="menu-row" id="menuRow">
+        <div class="dropdown" id="dropdownMenu">
+          <button class="dropdown-item" id="undoStepButton" type="button">-1</button>
+        </div>
+      </div>
     </main>
     <script src="shared.js"></script>
     <script src="widget.js"></script>
