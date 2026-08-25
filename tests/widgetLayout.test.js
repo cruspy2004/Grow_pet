@@ -190,14 +190,44 @@ test('a drag that gets clamped still round trips through drag-end', () => {
 
 /* ------------------------------------------------------- known limitations */
 
-test('the pet reaches the same screen edges in every mode', () => {
-  // Dragging clamps the pet square, so the reachable area must not shrink by the
-  // width of whatever the current mode draws around the sprite.
-  const reach = MODES.map(() => clampAnchor({ x: 5000, y: 5000 }, HD));
-  for (const corner of reach) {
-    assert.deepEqual(corner, { x: 1832, y: 952 });
+// Mirrors what main.js does per pointermove: the renderer sends the pet anchor it
+// wants (its pointerdown anchor plus the pointer delta), main clamps it and lays
+// the window out around it. Runs the whole move so an edge flip mid-drag counts.
+function dragPet(mode, start, deltas, area) {
+  let bounds = computeWidgetBounds(mode, start, area);
+  return deltas.map((delta) => {
+    const anchor = clampAnchor({ x: start.x + delta.x, y: start.y + delta.y }, area);
+    bounds = computeWidgetBounds(mode, anchor, area);
+    return anchorFromWidgetBounds(bounds, bounds.side, bounds.menuUp);
+  });
+}
+
+test('the pet tracks the pointer across an edge flip in every mode', () => {
+  // Start close enough to the right edge that the expanded row has to flip
+  // partway through the drag, and near the bottom so the menu flips too.
+  const start = { x: HD.width - 520, y: HD.height - 220 };
+  const deltas = [0, 100, 170, 200, 250, 400, 600, 0, -300].map((x) => ({ x, y: x / 2 }));
+
+  for (const mode of MODES) {
+    const seen = dragPet(mode, start, deltas, HD);
+    seen.forEach((anchor, index) => {
+      const expected = clampAnchor(
+        { x: start.x + deltas[index].x, y: start.y + deltas[index].y },
+        HD
+      );
+      assert.deepEqual(anchor, expected, `${mode} drifted at delta ${deltas[index].x}`);
+    });
   }
-  assert.deepEqual(clampAnchor({ x: -5000, y: -5000 }, HD), { x: 0, y: 0 });
+});
+
+test('an expanded drag reaches the same right edge an idle drag does', () => {
+  const start = { x: 400, y: 400 };
+  const far = [{ x: 5000, y: 5000 }];
+  const reach = MODES.map((mode) => dragPet(mode, start, far, HD)[0]);
+  for (const corner of reach) {
+    assert.deepEqual(corner, { x: HD.width - PET_BOX, y: HD.height - PET_BOX });
+  }
+  assert.deepEqual(dragPet('menu', start, [{ x: -5000, y: -5000 }], HD)[0], { x: 0, y: 0 });
 });
 
 test('clampAnchor keeps the pet square inside an offset display', () => {

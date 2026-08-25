@@ -57,7 +57,13 @@ async function setMode(mode) {
   // Two quick interactions overlap their round trips; without this the earlier
   // reply lands last and visibly undoes the later one before it self-corrects.
   const seq = ++ui.modeSeq;
-  const layout = await buddyApi.setWidgetMode(mode);
+  let layout = null;
+  try {
+    layout = await buddyApi.setWidgetMode(mode);
+  } catch (error) {
+    // The window is gone (quitting, or reloaded); nothing left to lay out.
+    return;
+  }
   if (seq !== ui.modeSeq) {
     return;
   }
@@ -269,6 +275,11 @@ async function finishDrag(event, allowClick) {
 
 petSlot.addEventListener('pointerup', (event) => finishDrag(event, true));
 petSlot.addEventListener('pointercancel', (event) => finishDrag(event, false));
+
+// If pointer capture failed, the release can land outside the sprite. Without
+// this the drag would stay live forever and auto-hide would never fire again.
+document.addEventListener('pointerup', (event) => finishDrag(event, false));
+document.addEventListener('pointercancel', (event) => finishDrag(event, false));
 
 petSlot.addEventListener('click', (event) => {
   // A real drag ends with a synthetic click; swallow it.

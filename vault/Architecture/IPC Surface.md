@@ -18,7 +18,19 @@ Every method exposed on `window.growBuddy` by `preload.js`, and the main-process
 |---|---|---|
 | `openPanel()` | `panel:open` | Creates or focuses the panel window |
 | `notifyRightClick()` | `widget:right-click` (send) | Opens panel |
-| `showPanelFromWidget()` | `widget:toggle-panel` (send) | Opens panel |
+
+## Widget window
+
+Positions on these channels are always the **pet square** (88x88), never the window
+rectangle — the two differ once the row flips at a screen edge.
+
+| Method | IPC channel | Effect |
+|---|---|---|
+| `setWidgetMode(mode)` | `widget:set-mode` | Resize to `idle` / `expanded` / `menu`; returns `{ mode, side, menuUp }` |
+| `getWidgetPosition()` | `widget:get-position` | Current pet anchor, for the start of a drag |
+| `moveWidget({ x, y })` | `widget:move-to` (send) | Move the pet to a proposed anchor, clamped to its display |
+| `endWidgetDrag()` | `widget:drag-end` | Persist the anchor to `settings.widgetPosition` |
+| `onWidgetLayout(cb)` | `widget:layout` (receive) | Main pushes a new `{ mode, side, menuUp }` when a drag flips the layout |
 
 ## Goals
 

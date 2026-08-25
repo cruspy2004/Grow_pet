@@ -119,7 +119,15 @@ async function migrateLegacyUserData() {
     return;
   }
 
-  const newest = candidates.sort((left, right) => right.modifiedAt - left.modifiedAt)[0];
+  // A previous run of the buggy build wrote an empty defaults file to one of
+  // these paths, and it carries the freshest mtime. Prefer a store that actually
+  // holds something, and only fall back to recency to break a real tie.
+  const weigh = (candidate) => (candidate.state.goals.length ? 1 : 0);
+  const newest = candidates.sort((left, right) => (
+    weigh(right) - weigh(left)
+    || right.state.stepEvents.length - left.state.stepEvents.length
+    || right.modifiedAt - left.modifiedAt
+  ))[0];
   try {
     await fs.mkdir(path.dirname(target), { recursive: true });
     await fs.writeFile(target, JSON.stringify(newest.state, null, 2), 'utf8');
@@ -754,13 +762,12 @@ app.whenReady().then(async () => {
   });
 
   ipcMain.handle('widget:set-mode', async (_event, mode) => applyWidgetMode(mode));
-  ipcMain.handle('widget:get-position', async () => {
-    if (!widgetWindow || widgetWindow.isDestroyed()) {
-      return { x: Math.round(widgetAnchor.x), y: Math.round(widgetAnchor.y) };
-    }
-    const bounds = widgetWindow.getBounds();
-    return { x: bounds.x, y: bounds.y };
-  });
+  // Drag positions are expressed as the pet square, never as the window. The
+  // window origin means different things either side of an edge flip, so a drag
+  // that crossed one would jump by the width of the control pill.
+  ipcMain.handle('widget:get-position', async () => (
+    { x: Math.round(widgetAnchor.x), y: Math.round(widgetAnchor.y) }
+  ));
   ipcMain.on('widget:move-to', (_event, payload) => {
     if (!widgetWindow || widgetWindow.isDestroyed()) {
       return;
@@ -770,17 +777,8 @@ app.whenReady().then(async () => {
     if (!Number.isFinite(x) || !Number.isFinite(y)) {
       return;
     }
-    // What the user is dragging is the pet square, not the window, so clamp and
-    // pick the display from the square. Clamping the window would leave a dead
-    // zone the width of the control pill along the right edge while expanded.
-    const bounds = widgetWindow.getBounds();
-    const proposed = widgetLayout.anchorFromWidgetBounds(
-      { ...bounds, x, y },
-      widgetSide,
-      widgetMenuUp
-    );
-    const area = workAreaNear(proposed.x + PET_BOX / 2, proposed.y + PET_BOX / 2);
-    widgetAnchor = widgetLayout.clampAnchor(proposed, area);
+    const area = workAreaNear(x + PET_BOX / 2, y + PET_BOX / 2);
+    widgetAnchor = widgetLayout.clampAnchor({ x, y }, area);
     const previousSide = widgetSide;
     const previousMenuUp = widgetMenuUp;
     const layout = applyWidgetMode(widgetMode);
